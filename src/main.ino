@@ -2,6 +2,7 @@
 #include <esp_wps.h>
 #include <Preferences.h>
 #include <Audio.h>
+#include <ESP32Encoder.h>
 
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
@@ -9,6 +10,9 @@
 #define PIN_I2S_DOUT 26
 #define PIN_I2S_BCLK 27
 #define PIN_I2S_LRC 25
+#define PIN_ENCODER_CLK 5
+#define PIN_ENCODER_DT 18
+#define PIN_ENCODER_SW 19
 
 #define ESP_WPS_MODE WPS_TYPE_PBC
 #define MAX_BLINKS 10
@@ -37,12 +41,14 @@ const char* RMFFM_URL = "http://uk1.internet-radio.com:8294/live";
 
 Audio audio;
 Preferences preferences;
+ESP32Encoder encoder;
 Blink blinks[MAX_BLINKS];
 
 int blinkCount = 0;
 int currentRed = 0;
 int currentGreen = 0;
 int currentBlue = 0;
+long currentEncoder = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -55,6 +61,13 @@ void setup() {
   pinMode(PIN_I2S_BCLK, OUTPUT);
   pinMode(PIN_I2S_DOUT, OUTPUT);
   pinMode(PIN_I2S_LRC, OUTPUT);
+  pinMode(PIN_ENCODER_DT, INPUT);
+  pinMode(PIN_ENCODER_CLK, INPUT);
+  pinMode(PIN_ENCODER_SW, INPUT);
+
+  ESP32Encoder::useInternalWeakPullResistors = puType::none;
+  encoder.attachSingleEdge(PIN_ENCODER_DT, PIN_ENCODER_CLK);
+  encoder.setCount(currentEncoder);
 
   changeColour(COLOUR_BLUE);
 
@@ -85,7 +98,14 @@ void setup() {
 }
 
 void loop() {
-  processNextBlink();
+  // processNextBlink();
+
+  long newPosition = encoder.getCount();
+
+  if (newPosition != currentEncoder) {
+    Serial.println("New position: " + String(newPosition));
+    currentEncoder = newPosition;
+  }
 
   if (WiFi.status() == WL_CONNECTED) {
     if (audio.isRunning()) {
