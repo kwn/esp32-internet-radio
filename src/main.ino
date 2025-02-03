@@ -2,7 +2,7 @@
 #include <esp_wps.h>
 #include <Preferences.h>
 #include <Audio.h>
-#include <ESP32Encoder.h>
+#include <Encoder.h>
 
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
@@ -13,6 +13,10 @@
 #define PIN_ENCODER_CLK 5
 #define PIN_ENCODER_DT 18
 #define PIN_ENCODER_SW 19
+
+#define PIN_ENCODER2_CLK 34
+#define PIN_ENCODER2_DT 35
+#define PIN_ENCODER2_SW 32
 
 #define ESP_WPS_MODE WPS_TYPE_PBC
 #define MAX_BLINKS 10
@@ -38,10 +42,20 @@ const Colour COLOUR_CYAN = {0, 255, 255};
 const Colour COLOUR_WHITE = {255, 255, 255};
 
 const char* RMFFM_URL = "http://uk1.internet-radio.com:8294/live";
+const char* RADIO_STATIONS[7] = {
+  "https://fr4.1mix.co.uk:8000/32aac",
+  "https://zt02.cdn.eurozet.pl/ZETHIT.mp3",
+  RMFFM_URL,
+  "http://uk7.internet-radio.com:8226/live",
+  "https://195.150.20.7/rmf_fm",
+  "https://s3.slotex.pl:7046/stream/",
+  "https://ssl-1.radiohost.pl:9680/stream"
+};
 
 Audio audio;
 Preferences preferences;
-ESP32Encoder encoder;
+Encoder *encoder;
+Encoder *encoder2;
 Blink blinks[MAX_BLINKS];
 
 int blinkCount = 0;
@@ -49,6 +63,9 @@ int currentRed = 0;
 int currentGreen = 0;
 int currentBlue = 0;
 long currentEncoder = 0;
+long currentVolume = 8;
+int currentStation = 0;
+int numStations = sizeof(RADIO_STATIONS) / sizeof(RADIO_STATIONS[0]);
 
 void setup() {
   Serial.begin(9600);
@@ -63,13 +80,17 @@ void setup() {
   pinMode(PIN_I2S_LRC, OUTPUT);
   pinMode(PIN_ENCODER_DT, INPUT);
   pinMode(PIN_ENCODER_CLK, INPUT);
-  pinMode(PIN_ENCODER_SW, INPUT);
+  pinMode(PIN_ENCODER_SW, INPUT_PULLUP);
+  pinMode(PIN_ENCODER2_DT, INPUT);
+  pinMode(PIN_ENCODER2_CLK, INPUT);
+  pinMode(PIN_ENCODER2_SW, INPUT);
 
-  ESP32Encoder::useInternalWeakPullResistors = puType::none;
-  encoder.attachSingleEdge(PIN_ENCODER_DT, PIN_ENCODER_CLK);
-  encoder.setCount(currentEncoder);
 
   changeColour(COLOUR_BLUE);
+
+  encoder = new Encoder(PIN_ENCODER_CLK, PIN_ENCODER_DT);
+  encoder2 = new Encoder(PIN_ENCODER2_CLK, PIN_ENCODER2_DT);
+
 
   Serial.println("Setting up audio...");
 
@@ -100,12 +121,15 @@ void setup() {
 void loop() {
   // processNextBlink();
 
-  long newPosition = encoder.getCount();
+  // long newPosition = (int)(encoder->read() / 4);
 
-  if (newPosition != currentEncoder) {
-    Serial.println("New position: " + String(newPosition));
-    currentEncoder = newPosition;
-  }
+  // if (newPosition != currentEncoder) {
+  //   Serial.println("New position: " + String(newPosition));
+  //   currentEncoder = newPosition;
+  // }
+  handleVolume(encoder2);
+  handleStationChange(encoder);
+  // handleClick();
 
   if (WiFi.status() == WL_CONNECTED) {
     if (audio.isRunning()) {
@@ -113,7 +137,7 @@ void loop() {
     } else {
       Serial.println("Audio stopped or failed, attempting to reconnect...");
       delay(1000);
-      audio.connecttohost(RMFFM_URL);
+      audio.connecttohost(RADIO_STATIONS[currentStation]);
     }
   } else {
     Serial.println("Wifi not connected...");
@@ -121,6 +145,61 @@ void loop() {
     changeColour(COLOUR_RED);
     delay(1000);
   }
+}
+
+void handleVolume(Encoder* enc) {
+
+    long newVolume = (int)(enc->read() / 4);
+
+    if (newVolume != 0) {
+      if (newVolume > 0) {
+        currentVolume = min(currentVolume + newVolume, 21l);
+      } else if (newVolume < 0) {
+        currentVolume = max(currentVolume + newVolume, 0l);
+      }
+
+    Serial.println("Set volume to: " + String(currentVolume));
+
+    audio.setVolume(currentVolume);
+    enc->write(0);
+  }
+}
+
+void handleStationChange(Encoder* enc) {
+
+    long newStation = (int)(enc->read() / 4);
+
+    if (newStation != 0) {
+      if (newStation > 0) {
+        currentStation = min(currentStation + newStation, (long) numStations - 1);
+      } else if (newStation < 0) {
+        currentStation = max(currentStation + newStation, 0l);
+      }
+
+    Serial.println("Set station to: " + String(currentStation));
+
+    //delay(200);
+    audio.connecttohost(RADIO_STATIONS[currentStation]);
+    enc->write(0);
+  }
+}
+
+void handleClick() {
+  Serial.println("PIN STATE " + String(analogRead(PIN_ENCODER2_SW)));
+  if (digitalRead(PIN_ENCODER2_SW) == LOW) {
+    // Serial.println("Mute click");
+    //currentVolume = 0;
+    //audio.setVolume(currentVolume);
+    // if(currentStation >= numStations - 1) {
+    //   currentStation = 0;
+    // } else {
+    //   currentStation++;
+    // }
+
+    // delay(200);
+    // audio.connecttohost(RADIO_STATIONS[currentStation]);
+    // Serial.println("Set station to " + String(currentStation));
+    }
 }
 
 void addBlink(Blink blink) {
@@ -218,7 +297,8 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     }
     case ARDUINO_EVENT_WIFI_STA_GOT_IP: {
       Serial.println("Connected to: " + String(WiFi.SSID()));
-      Serial.println("Got IP: " + String(WiFi.localIP()));
+      Serial.print("Got IP: ");
+      Serial.println(WiFi.localIP());
       //addBlink({COLOUR_GREEN, 3, "ARDUINO_EVENT_WIFI_STA_GOT_IP"});
       break;
     }
