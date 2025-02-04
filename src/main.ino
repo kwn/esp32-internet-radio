@@ -57,7 +57,6 @@ int currentRed = 0;
 int currentGreen = 0;
 int currentBlue = 0;
 long currentEncoder = 0;
-long currentVolume = 8;
 int currentStation = 0;
 
 void setup() {
@@ -86,10 +85,9 @@ void setup() {
   Serial.println("Setting up audio...");
 
   audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
-  audio.setVolume(21);
   audio.setBalance(0);
 
-  volumeControl = new VolumeControl(encoder2, &audio, 8);
+  volumeControl = new VolumeControl(encoder2, &audio);
   stationControl = new StationControl(encoder, &audio);
 
   Serial.println("Initiating preferences...");
@@ -133,7 +131,7 @@ void loop() {
     } else {
       Serial.println("Audio stopped or failed, attempting to reconnect...");
       delay(1000);
-      audio.connecttohost(stationControl->getCurrentStationUrl());
+      stationControl->reconnect();
     }
   } else {
     Serial.println("Wifi not connected...");

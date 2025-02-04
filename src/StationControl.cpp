@@ -23,13 +23,13 @@ void StationControl::handleStationChange() {
     if (newStation != 0) {
         currentStation = max(0, min(currentStation + newStation, numStations - 1));
 
-        audio->connecttohost(stations[currentStation]);
-        encoder->write(0);
+        reconnect();
 
         Serial.println("Set station to " + String(currentStation));
     }
 }
 
-const char* StationControl::getCurrentStationUrl() const {
-    return stations[currentStation];
+void StationControl::reconnect() {
+    audio->connecttohost(stations[currentStation]);
+    encoder->write(0);
 }

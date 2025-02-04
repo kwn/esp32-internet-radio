@@ -16,7 +16,7 @@ private:
     void decreaseVolume(int volumeChange);
 
 public:
-    VolumeControl(Encoder* enc, Audio* aud, int initialVolume = 11);
+    VolumeControl(Encoder* enc, Audio* aud, int initialVolume = 21);
     void handleVolume();
 };
 

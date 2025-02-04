@@ -15,7 +15,7 @@ private:
 public:
     StationControl(Encoder* enc, Audio* aud, int initialStation = 0);
     void handleStationChange();
-    const char* getCurrentStationUrl() const;
+    void reconnect();
 };
 
 #endif
