@@ -4,6 +4,8 @@
 #include <Audio.h>
 #include <Encoder.h>
 
+#include "VolumeControl.h"
+
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
 #define PIN_LED_BLUE 23
@@ -57,6 +59,7 @@ Preferences preferences;
 Encoder *encoder;
 Encoder *encoder2;
 Blink blinks[MAX_BLINKS];
+VolumeControl *volumeControl;
 
 int blinkCount = 0;
 int currentRed = 0;
@@ -98,6 +101,8 @@ void setup() {
   audio.setVolume(21);
   audio.setBalance(0);
 
+  volumeControl = new VolumeControl(encoder2, &audio, 8);
+
   Serial.println("Initiating preferences...");
 
   preferences.begin("wifi", false);
@@ -127,7 +132,9 @@ void loop() {
   //   Serial.println("New position: " + String(newPosition));
   //   currentEncoder = newPosition;
   // }
-  handleVolume(encoder2);
+
+  volumeControl->handleVolume();
+
   handleStationChange(encoder);
   // handleClick();
 
