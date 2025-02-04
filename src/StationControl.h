@@ -8,13 +8,14 @@ class StationControl {
 private:
     Encoder* encoder;
     Audio* audio;
-    const char** stations;
-    int numStations;
     int currentStation;
+    static const char* stations[];
+    static const int numStations;
 
 public:
-    StationControl(Encoder* enc, Audio* aud, const char** stat, int numStat);
+    StationControl(Encoder* enc, Audio* aud, int initialStation = 0);
     void handleStationChange();
+    const char* getCurrentStationUrl() const;
 };
 
 #endif

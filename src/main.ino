@@ -5,6 +5,7 @@
 #include <Encoder.h>
 
 #include "VolumeControl.h"
+#include "StationControl.h"
 
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
@@ -43,23 +44,13 @@ const Colour COLOUR_MAGENTA = {255, 0, 255};
 const Colour COLOUR_CYAN = {0, 255, 255};
 const Colour COLOUR_WHITE = {255, 255, 255};
 
-const char* RMFFM_URL = "http://uk1.internet-radio.com:8294/live";
-const char* RADIO_STATIONS[7] = {
-  "https://fr4.1mix.co.uk:8000/32aac",
-  "https://zt02.cdn.eurozet.pl/ZETHIT.mp3",
-  RMFFM_URL,
-  "http://uk7.internet-radio.com:8226/live",
-  "https://195.150.20.7/rmf_fm",
-  "https://s3.slotex.pl:7046/stream/",
-  "https://ssl-1.radiohost.pl:9680/stream"
-};
-
 Audio audio;
 Preferences preferences;
 Encoder *encoder;
 Encoder *encoder2;
 Blink blinks[MAX_BLINKS];
 VolumeControl *volumeControl;
+StationControl *stationControl;
 
 int blinkCount = 0;
 int currentRed = 0;
@@ -68,7 +59,6 @@ int currentBlue = 0;
 long currentEncoder = 0;
 long currentVolume = 8;
 int currentStation = 0;
-int numStations = sizeof(RADIO_STATIONS) / sizeof(RADIO_STATIONS[0]);
 
 void setup() {
   Serial.begin(9600);
@@ -88,12 +78,10 @@ void setup() {
   pinMode(PIN_ENCODER2_CLK, INPUT);
   pinMode(PIN_ENCODER2_SW, INPUT);
 
-
   changeColour(COLOUR_BLUE);
 
   encoder = new Encoder(PIN_ENCODER_CLK, PIN_ENCODER_DT);
   encoder2 = new Encoder(PIN_ENCODER2_CLK, PIN_ENCODER2_DT);
-
 
   Serial.println("Setting up audio...");
 
@@ -102,6 +90,7 @@ void setup() {
   audio.setBalance(0);
 
   volumeControl = new VolumeControl(encoder2, &audio, 8);
+  stationControl = new StationControl(encoder, &audio);
 
   Serial.println("Initiating preferences...");
 
@@ -134,8 +123,8 @@ void loop() {
   // }
 
   volumeControl->handleVolume();
+  stationControl->handleStationChange();
 
-  handleStationChange(encoder);
   // handleClick();
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -144,50 +133,13 @@ void loop() {
     } else {
       Serial.println("Audio stopped or failed, attempting to reconnect...");
       delay(1000);
-      audio.connecttohost(RADIO_STATIONS[currentStation]);
+      audio.connecttohost(stationControl->getCurrentStationUrl());
     }
   } else {
     Serial.println("Wifi not connected...");
 
     changeColour(COLOUR_RED);
     delay(1000);
-  }
-}
-
-void handleVolume(Encoder* enc) {
-
-    long newVolume = (int)(enc->read() / 4);
-
-    if (newVolume != 0) {
-      if (newVolume > 0) {
-        currentVolume = min(currentVolume + newVolume, 21l);
-      } else if (newVolume < 0) {
-        currentVolume = max(currentVolume + newVolume, 0l);
-      }
-
-    Serial.println("Set volume to: " + String(currentVolume));
-
-    audio.setVolume(currentVolume);
-    enc->write(0);
-  }
-}
-
-void handleStationChange(Encoder* enc) {
-
-    long newStation = (int)(enc->read() / 4);
-
-    if (newStation != 0) {
-      if (newStation > 0) {
-        currentStation = min(currentStation + newStation, (long) numStations - 1);
-      } else if (newStation < 0) {
-        currentStation = max(currentStation + newStation, 0l);
-      }
-
-    Serial.println("Set station to: " + String(currentStation));
-
-    //delay(200);
-    audio.connecttohost(RADIO_STATIONS[currentStation]);
-    enc->write(0);
   }
 }
 

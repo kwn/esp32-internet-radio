@@ -8,13 +8,15 @@ class VolumeControl {
 private:
     Encoder* encoder;
     Audio* audio;
-    long currentVolume;
+    int currentVolume;
 
-    bool volumeDecreased(long newVolume);
-    bool volumeIncreased(long newVolume);
+    bool volumeDecreased(int newVolume);
+    bool volumeIncreased(int newVolume);
+    void increaseVolume(int volumeChange);
+    void decreaseVolume(int volumeChange);
 
 public:
-    VolumeControl(Encoder* enc, Audio* aud, long initialVolume = 8);
+    VolumeControl(Encoder* enc, Audio* aud, int initialVolume = 11);
     void handleVolume();
 };
 
