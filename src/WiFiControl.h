@@ -8,18 +8,20 @@
 class WiFiControl {
 private:
     Preferences preferences;
+    static WiFiControl* instance;
 
-    static void wpsStart();
-    static void wpsStop();
-    static void handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
+    void wpsStart();
+    void wpsStop();
+    void saveCredentials(const String& ssid, const String& password);
+    void loadCredentials(String& ssid, String& password);
+    void handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
+    static void staticHandleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
 
 public:
     WiFiControl(Preferences prefs);
     void setupWiFi();
     void reconnect();
     void clearCredentials();
-    void saveCredentials(const String& ssid, const String& password);
-    void loadCredentials(String& ssid, String& password);
 };
 
 #endif

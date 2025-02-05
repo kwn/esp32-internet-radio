@@ -78,21 +78,19 @@ void setup() {
   pinMode(PIN_ENCODER2_CLK, INPUT);
   pinMode(PIN_ENCODER2_SW, INPUT);
 
-  changeColour(COLOUR_BLUE);
+  changeColour(COLOUR_GREEN);
 
   encoder = new Encoder(PIN_ENCODER_CLK, PIN_ENCODER_DT);
   encoder2 = new Encoder(PIN_ENCODER2_CLK, PIN_ENCODER2_DT);
+  volumeControl = new VolumeControl(encoder2, &audio);
+  stationControl = new StationControl(encoder, &audio);
+  wifiControl = new WiFiControl(preferences);
 
   Serial.println("Setting up audio...");
 
   audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
   audio.setBalance(0);
 
-  volumeControl = new VolumeControl(encoder2, &audio);
-  stationControl = new StationControl(encoder, &audio);
-
-
-  wifiControl = new WiFiControl(preferences);
   wifiControl->setupWiFi();
 }
 

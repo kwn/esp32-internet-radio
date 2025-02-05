@@ -1,15 +1,19 @@
+#include <Arduino.h>
 #include "WiFiControl.h"
+
+WiFiControl* WiFiControl::instance = nullptr;
 
 WiFiControl::WiFiControl(Preferences prefs) {
     preferences = prefs;
-
     preferences.begin("wifi", false);
+
+    instance = this;
 }
 
 void WiFiControl::setupWiFi() {
     Serial.println("Setting up WiFi...");
 
-    WiFi.onEvent(handleWiFiEvent);
+    WiFi.onEvent(staticHandleWiFiEvent);
     WiFi.mode(WIFI_MODE_STA);
 
     String ssid, password;
@@ -78,6 +82,12 @@ void WiFiControl::wpsStop() {
     }
 }
 
+void WiFiControl::staticHandleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
+    if (instance) {
+        instance->handleWiFiEvent(event, info);
+    }
+}
+
 void WiFiControl::handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     switch (event) {
         case ARDUINO_EVENT_WIFI_STA_START:
@@ -93,6 +103,7 @@ void WiFiControl::handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) 
             break;
         case ARDUINO_EVENT_WPS_ER_SUCCESS:
             Serial.println("WPS Successful, stopping WPS, saving credentials and connecting to: " + String(WiFi.SSID()));
+            saveCredentials(WiFi.SSID(), WiFi.psk());
             wpsStop();
             break;
         case ARDUINO_EVENT_WPS_ER_FAILED:
