@@ -6,17 +6,20 @@
 #include <Preferences.h>
 
 class WiFiControl {
+private:
+    Preferences preferences;
+
+    static void wpsStart();
+    static void wpsStop();
+    static void handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
+
 public:
-    WiFiControl();
+    WiFiControl(Preferences prefs);
     void setupWiFi();
     void reconnect();
     void clearCredentials();
-
-private:
-    Preferences preferences;
-    void wpsStart();
-    void wpsStop();
-    static void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
+    void saveCredentials(const String& ssid, const String& password);
+    void loadCredentials(String& ssid, String& password);
 };
 
 #endif

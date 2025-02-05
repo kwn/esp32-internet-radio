@@ -1,11 +1,11 @@
 #include <WiFi.h>
 #include <esp_wps.h>
-#include <Preferences.h>
 #include <Audio.h>
 #include <Encoder.h>
 
 #include "VolumeControl.h"
 #include "StationControl.h"
+#include "WiFiControl.h"
 
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
@@ -51,6 +51,7 @@ Encoder *encoder2;
 Blink blinks[MAX_BLINKS];
 VolumeControl *volumeControl;
 StationControl *stationControl;
+WiFiControl *wifiControl;
 
 int blinkCount = 0;
 int currentRed = 0;
@@ -90,35 +91,13 @@ void setup() {
   volumeControl = new VolumeControl(encoder2, &audio);
   stationControl = new StationControl(encoder, &audio);
 
-  Serial.println("Initiating preferences...");
 
-  preferences.begin("wifi", false);
-  String ssid = preferences.getString("ssid", "");
-  String password = preferences.getString("password", "");
-
-  Serial.println("Setting up WiFi...");
-
-  WiFi.onEvent(WiFiEvent);
-  WiFi.mode(WIFI_MODE_STA);
-
-  if (!ssid.isEmpty() && !password.isEmpty()) {
-    Serial.println("SSID and password found. Connecting to WiFi.");
-    WiFi.begin(ssid.c_str(), password.c_str());
-  } else {
-    Serial.println("SSID and password not found. Starting WPS.");
-    wpsStart();
-  }
+  wifiControl = new WiFiControl(preferences);
+  wifiControl->setupWiFi();
 }
 
 void loop() {
   // processNextBlink();
-
-  // long newPosition = (int)(encoder->read() / 4);
-
-  // if (newPosition != currentEncoder) {
-  //   Serial.println("New position: " + String(newPosition));
-  //   currentEncoder = newPosition;
-  // }
 
   volumeControl->handleVolume();
   stationControl->handleStationChange();
@@ -130,14 +109,16 @@ void loop() {
       audio.loop();
     } else {
       Serial.println("Audio stopped or failed, attempting to reconnect...");
-      delay(1000);
+      delay(2000);
       stationControl->reconnect();
     }
   } else {
     Serial.println("Wifi not connected...");
 
-    changeColour(COLOUR_RED);
-    delay(1000);
+    changeColour(COLOUR_BLUE);
+    delay(2000);
+
+    wifiControl->reconnect();
   }
 }
 
@@ -214,97 +195,6 @@ void blink(Blink blink) {
   delay(2000);
 
   setColor(prevRed, prevGreen, prevBlue);
-}
-
-void wpsStart() {
-  esp_wps_config_t config;
-  memset(&config, 0, sizeof(esp_wps_config_t));
-
-  config.wps_type = ESP_WPS_MODE;
-  strcpy(config.factory_info.manufacturer, "ESPRESSIF");
-  strcpy(config.factory_info.model_number, CONFIG_IDF_TARGET);
-  strcpy(config.factory_info.model_name, "ESPRESSIF IOT");
-  strcpy(config.factory_info.device_name, "ESP DEVICE");
-
-  esp_err_t err = esp_wifi_wps_enable(&config);
-  if (err != ESP_OK) {
-    Serial.printf("WPS Enable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
-    return;
-  }
-
-  err = esp_wifi_wps_start(0);
-  if (err != ESP_OK) {
-    Serial.printf("WPS Start Failed: 0x%x: %s\n", err, esp_err_to_name(err));
-  }
-}
-
-void wpsStop() {
-  esp_err_t err = esp_wifi_wps_disable();
-  if (err != ESP_OK) {
-    Serial.printf("WPS Disable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
-  }
-}
-
-void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
-  switch (event) {
-    case ARDUINO_EVENT_WIFI_STA_START: {
-      Serial.println("Station Mode Started");
-      //addBlink({COLOUR_WHITE, 3, "ARDUINO_EVENT_WIFI_STA_START"});
-      break;
-    }
-    case ARDUINO_EVENT_WIFI_STA_GOT_IP: {
-      Serial.println("Connected to: " + String(WiFi.SSID()));
-      Serial.print("Got IP: ");
-      Serial.println(WiFi.localIP());
-      //addBlink({COLOUR_GREEN, 3, "ARDUINO_EVENT_WIFI_STA_GOT_IP"});
-      break;
-    }
-    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED: {
-      Serial.println("Disconnected from station, attempting reconnection");
-      WiFi.reconnect();
-      //addBlink({COLOUR_YELLOW, 3, "ARDUINO_EVENT_WIFI_STA_DISCONNECTED"});
-      break;
-    }
-    case ARDUINO_EVENT_WPS_ER_SUCCESS: {
-      Serial.println("WPS Successful, stopping WPS, saving credentials and connecting to: " + String(WiFi.SSID()));
-
-      wpsStop();
-
-      String ssid = WiFi.SSID();
-      String pass = WiFi.psk();
-
-      preferences.putString("ssid", ssid);
-      preferences.putString("password", pass);
-
-      WiFi.begin(ssid.c_str(), pass.c_str());
-
-      //addBlink({COLOUR_BLUE, 3, "ARDUINO_EVENT_WPS_ER_SUCCESS"});
-      break;
-    }
-    case ARDUINO_EVENT_WPS_ER_FAILED: {
-      Serial.println("WPS Failed, retrying");
-      wpsStop();
-      wpsStart();
-      //addBlink({COLOUR_BLUE, 4, "ARDUINO_EVENT_WPS_ER_FAILED"});
-      break;
-    }
-    case ARDUINO_EVENT_WPS_ER_TIMEOUT: {
-      Serial.println("WPS Timedout, retrying");
-      wpsStop();
-      wpsStart();
-      //addBlink({COLOUR_MAGENTA, 4, "ARDUINO_EVENT_WPS_ER_TIMEOUT"});
-      break;
-    }
-    default: {
-      Serial.println("Unhandled even from WiFi: " + event);
-      break;
-    }
-  }
-}
-
-void clearWifiSettings() {
-  preferences.remove("ssid");
-  preferences.remove("password");
 }
 
 void changeColour(Colour colour) {
