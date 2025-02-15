@@ -22,28 +22,6 @@ void VolumeControl::handleVolume() {
     }
 }
 
-void VolumeControl::handleMute() {
-    static bool buttonPressed = false;
-
-    if (digitalRead(switchPin) == LOW) {
-        if (!buttonPressed) {
-            isMuted = !isMuted;
-
-            if (isMuted) {
-                audio->setVolume(0);
-                Serial.println("Muted");
-            } else {
-                audio->setVolume(currentVolume);
-                Serial.println("Unmuted");
-            }
-
-            buttonPressed = true;
-        }
-    } else {
-        buttonPressed = false;
-    }
-}
-
 bool VolumeControl::volumeDecreased(int newVolume) {
     return newVolume < 0;
 }
@@ -68,4 +46,25 @@ void VolumeControl::decreaseVolume(int volumeChange) {
     encoder->write(0);
 
     Serial.println("Volume decreased to " + String(currentVolume));
+}
+
+void VolumeControl::handleMute() {
+    static bool buttonPressed = false;
+
+    if (digitalRead(switchPin) == LOW) {
+        if (!buttonPressed) {
+            isMuted = !isMuted;
+            buttonPressed = true;
+
+            if (isMuted) {
+                audio->setVolume(0);
+                Serial.println("Muted");
+            } else {
+                audio->setVolume(currentVolume);
+                Serial.println("Unmuted");
+            }
+        }
+    } else {
+        buttonPressed = false;
+    }
 }
