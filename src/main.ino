@@ -20,23 +20,17 @@
 #define PIN_ENCODER2_CLK 35
 #define PIN_ENCODER2_DT 32
 #define PIN_ENCODER2_SW 33
-#define ROTARY_ENCODER_STEPS 4
 
 Audio audio;
 Preferences preferences;
 Encoder *encoder1;
 Encoder *encoder2;
-AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW, -1, ROTARY_ENCODER_STEPS);
 
 VolumeControl *volumeControl;
 StationControl *stationControl;
 WiFiControl *wifiControl;
 LedControl *ledControl;
 ToneControl *toneControl;
-
-void IRAM_ATTR readEncoderISR() {
-    rotaryEncoder.readEncoder_ISR();
-}
 
 void setup() {
     Serial.begin(9600);
@@ -57,17 +51,11 @@ void setup() {
 
     encoder1 = new Encoder(PIN_ENCODER1_CLK, PIN_ENCODER1_DT);
 
-    rotaryEncoder.begin();
-    rotaryEncoder.setup(readEncoderISR);
-    rotaryEncoder.setBoundaries(TONE_CONTROL_MIN_BOUNDRY, TONE_CONTROL_MAX_BOUNDRY, false);
-    rotaryEncoder.disableAcceleration();
-
-
     // volumeControl = new VolumeControl(encoder2, &audio, PIN_ENCODER2_SW);
     stationControl = new StationControl(encoder1, &audio);
     wifiControl = new WiFiControl(preferences);
     ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
-    toneControl = new ToneControl(&rotaryEncoder, &audio);
+    toneControl = new ToneControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
     ledControl->setColour(COLOUR_RED);
 
@@ -82,7 +70,7 @@ void setup() {
 void loop() {
     // volumeControl->handleVolume();
     // volumeControl->handleMute();
-    toneControl->handleTone();
+    toneControl->handleChange();
     toneControl->handleReset();
     stationControl->handleStationChange();
 

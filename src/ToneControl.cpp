@@ -1,26 +1,20 @@
 #include "ToneControl.h"
 
-ToneControl::ToneControl(AiEsp32RotaryEncoder* enc, Audio* aud)
-    : encoder(enc), audio(aud) {}
+ToneControl* ToneControl::instance = nullptr;
 
-void ToneControl::handleTone() {
-    if (encoder->encoderChanged()) {
-        int encoderValue = encoder->readEncoder();
+ToneControl::ToneControl(Audio* aud, int pinCLK, int pinDT, int pinSW):
+    audio(aud) {
+    instance = this;
+    encoder = new AiEsp32RotaryEncoder(pinCLK, pinDT, pinSW, -1, ROTARY_ENCODER_STEPS);
+    encoder->begin();
+    encoder->setup(readEncoderISR);
+    encoder->setBoundaries(TONE_CONTROL_MIN_BOUNDRY, TONE_CONTROL_MAX_BOUNDRY, false);
+    encoder->disableAcceleration();
+}
 
-        Serial.printf("Tone control changed: %d\n", encoderValue);
-
-        int low = 0;
-        int high = 0;
-
-        if (encoderValue < 0) {
-            low = abs(encoderValue);
-            high = (int)(encoderValue / 2);
-        } else if (encoderValue > 0) {
-            low = -abs((int)(encoderValue / 2));
-            high = encoderValue;
-        }
-
-        updateTone(low, high);
+void IRAM_ATTR ToneControl::readEncoderISR() {
+    if (instance) {
+        instance->encoder->readEncoder_ISR();
     }
 }
 
@@ -30,10 +24,30 @@ void ToneControl::updateTone(int low, int high) {
     Serial.printf("Bass: %d, Treble: %d\n", low, high);
 }
 
+void ToneControl::handleChange() {
+    if (encoder->encoderChanged()) {
+        int encoderValue = encoder->readEncoder();
+        int low = 0;
+        int high = 0;
+
+        Serial.printf("Tone control changed: %d\n", encoderValue);
+
+        if (encoderValue < 0) {
+            low = abs(encoderValue);
+            high = (int)(encoderValue / 2);
+        } else if (encoderValue > 0) {
+            low = -abs(encoderValue / 2);
+            high = encoderValue;
+        }
+
+        updateTone(low, high);
+    }
+}
+
 void ToneControl::handleReset() {
     static bool buttonPressed = false;
 
-    if (encoder->isEncoderButtonClicked()) {
+    if (encoder->isEncoderButtonDown()) {
         if (!buttonPressed) {
             buttonPressed = !buttonPressed;
             encoder->setEncoderValue(0);
