@@ -1,20 +1,46 @@
 #include "VolumeControl.h"
 
-VolumeControl::VolumeControl(Encoder* enc, Audio* aud, int initialVolume) {
+VolumeControl::VolumeControl(Encoder* enc, Audio* aud, int encoderSwitchPin, int initialVolume) {
     encoder = enc;
     audio = aud;
     currentVolume = initialVolume;
+    isMuted = false;
+    switchPin = encoderSwitchPin;
 
     audio->setVolume(currentVolume);
 }
 
 void VolumeControl::handleVolume() {
-    int volumeChange = (int)(encoder->read() / 4);
+    if (!isMuted) {
+        int volumeChange = (int)(encoder->read() / 4);
 
-    if (volumeIncreased(volumeChange)) {
-        increaseVolume(volumeChange);
-    } else if (volumeDecreased(volumeChange)) {
-        decreaseVolume(volumeChange);
+        if (volumeIncreased(volumeChange)) {
+            increaseVolume(volumeChange);
+        } else if (volumeDecreased(volumeChange)) {
+            decreaseVolume(volumeChange);
+        }
+    }
+}
+
+void VolumeControl::handleMute() {
+    static bool buttonPressed = false;
+
+    if (digitalRead(switchPin) == LOW) {
+        if (!buttonPressed) {
+            isMuted = !isMuted;
+
+            if (isMuted) {
+                audio->setVolume(0);
+                Serial.println("Muted");
+            } else {
+                audio->setVolume(currentVolume);
+                Serial.println("Unmuted");
+            }
+
+            buttonPressed = true;
+        }
+    } else {
+        buttonPressed = false;
     }
 }
 

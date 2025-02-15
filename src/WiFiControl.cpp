@@ -1,5 +1,8 @@
 #include <Arduino.h>
+#include <esp_wps.h>
 #include "WiFiControl.h"
+
+#define ESP_WPS_MODE WPS_TYPE_PBC
 
 WiFiControl* WiFiControl::instance = nullptr;
 
@@ -26,6 +29,10 @@ void WiFiControl::setupWiFi() {
         Serial.println("SSID and password not found. Starting WPS.");
         wpsStart();
     }
+}
+
+bool WiFiControl::isConnected() {
+    return WiFi.status() == WL_CONNECTED;
 }
 
 void WiFiControl::reconnect() {

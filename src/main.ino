@@ -1,11 +1,10 @@
-#include <WiFi.h>
-#include <esp_wps.h>
 #include <Audio.h>
 #include <Encoder.h>
 
 #include "VolumeControl.h"
 #include "StationControl.h"
 #include "WiFiControl.h"
+#include "LedControl.h"
 
 #define PIN_LED_RED 21
 #define PIN_LED_GREEN 22
@@ -13,56 +12,25 @@
 #define PIN_I2S_DOUT 26
 #define PIN_I2S_BCLK 27
 #define PIN_I2S_LRC 25
-#define PIN_ENCODER_CLK 5
-#define PIN_ENCODER_DT 18
-#define PIN_ENCODER_SW 19
-
-#define PIN_ENCODER2_CLK 32
-#define PIN_ENCODER2_DT 35
+#define PIN_ENCODER1_CLK 5
+#define PIN_ENCODER1_DT 18
+#define PIN_ENCODER1_SW 19
+#define PIN_ENCODER2_CLK 35
+#define PIN_ENCODER2_DT 32
 #define PIN_ENCODER2_SW 33
-
-#define ESP_WPS_MODE WPS_TYPE_PBC
-#define MAX_BLINKS 10
-
-struct Colour {
-  int red;
-  int green;
-  int blue;
-};
-
-struct Blink {
-  Colour colour;
-  int times;
-  const char* message;
-};
-
-const Colour COLOUR_RED = {255, 0, 0};
-const Colour COLOUR_GREEN = {0, 255, 0};
-const Colour COLOUR_BLUE = {0, 0, 255};
-const Colour COLOUR_YELLOW = {255, 255, 0};
-const Colour COLOUR_MAGENTA = {255, 0, 255};
-const Colour COLOUR_CYAN = {0, 255, 255};
-const Colour COLOUR_WHITE = {255, 255, 255};
 
 Audio audio;
 Preferences preferences;
-Encoder *encoder;
+Encoder *encoder1;
 Encoder *encoder2;
-Blink blinks[MAX_BLINKS];
+
 VolumeControl *volumeControl;
 StationControl *stationControl;
 WiFiControl *wifiControl;
-
-int blinkCount = 0;
-int currentRed = 0;
-int currentGreen = 0;
-int currentBlue = 0;
-long currentEncoder = 0;
-int currentStation = 0;
+LedControl *ledControl;
 
 void setup() {
   Serial.begin(9600);
-
   Serial.println("Starting setup...");
 
   pinMode(PIN_LED_RED, OUTPUT);
@@ -71,40 +39,39 @@ void setup() {
   pinMode(PIN_I2S_BCLK, OUTPUT);
   pinMode(PIN_I2S_DOUT, OUTPUT);
   pinMode(PIN_I2S_LRC, OUTPUT);
-  pinMode(PIN_ENCODER_DT, INPUT);
-  pinMode(PIN_ENCODER_CLK, INPUT);
-  pinMode(PIN_ENCODER_SW, INPUT_PULLUP);
+  pinMode(PIN_ENCODER1_DT, INPUT);
+  pinMode(PIN_ENCODER1_CLK, INPUT);
+  pinMode(PIN_ENCODER1_SW, INPUT);
   pinMode(PIN_ENCODER2_DT, INPUT);
   pinMode(PIN_ENCODER2_CLK, INPUT);
   pinMode(PIN_ENCODER2_SW, INPUT);
 
-  changeColour(COLOUR_GREEN);
-
-  encoder = new Encoder(PIN_ENCODER_CLK, PIN_ENCODER_DT);
+  encoder1 = new Encoder(PIN_ENCODER1_CLK, PIN_ENCODER1_DT);
   encoder2 = new Encoder(PIN_ENCODER2_CLK, PIN_ENCODER2_DT);
-  volumeControl = new VolumeControl(encoder2, &audio);
-  stationControl = new StationControl(encoder, &audio);
+  volumeControl = new VolumeControl(encoder2, &audio, PIN_ENCODER2_SW);
+  stationControl = new StationControl(encoder1, &audio);
   wifiControl = new WiFiControl(preferences);
+  ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
+
+  ledControl->setColour(COLOUR_RED);
 
   Serial.println("Setting up audio...");
 
   audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
-  audio.setBalance(0);
+  audio.forceMono(true);
 
   wifiControl->setupWiFi();
 }
 
 void loop() {
-  // processNextBlink();
-
   volumeControl->handleVolume();
+  volumeControl->handleMute();
   stationControl->handleStationChange();
 
-  // handleClick();
-
-  if (WiFi.status() == WL_CONNECTED) {
+  if (wifiControl->isConnected()) {
     if (audio.isRunning()) {
       audio.loop();
+      ledControl->setColour(COLOUR_GREEN);
     } else {
       Serial.println("Audio stopped or failed, attempting to reconnect...");
       delay(2000);
@@ -113,90 +80,11 @@ void loop() {
   } else {
     Serial.println("Wifi not connected...");
 
-    changeColour(COLOUR_BLUE);
-    delay(2000);
+    ledControl->setColour(COLOUR_BLUE);
+    delay(5000);
 
     wifiControl->reconnect();
   }
-}
-
-void handleClick() {
-  Serial.println("PIN STATE " + String(analogRead(PIN_ENCODER2_SW)));
-  if (digitalRead(PIN_ENCODER2_SW) == LOW) {
-    // Serial.println("Mute click");
-    //currentVolume = 0;
-    //audio.setVolume(currentVolume);
-    // if(currentStation >= numStations - 1) {
-    //   currentStation = 0;
-    // } else {
-    //   currentStation++;
-    // }
-
-    // delay(200);
-    // audio.connecttohost(RADIO_STATIONS[currentStation]);
-    // Serial.println("Set station to " + String(currentStation));
-    }
-}
-
-void addBlink(Blink blink) {
-  if (blinkCount < MAX_BLINKS) {
-    blinks[blinkCount++] = blink;
-  }
-}
-
-void processNextBlink() {
-  if (blinkCount > 0) {
-    Blink currentBlink = blinks[0];
-
-    for (int i = 0; i < blinkCount - 1; i++) {
-      blinks[i] = blinks[i + 1];
-    }
-    blinkCount--;
-
-    blink(currentBlink);
-  }
-}
-
-void setColor(int red, int green, int blue) {
-  analogWrite(PIN_LED_RED, red);
-  analogWrite(PIN_LED_GREEN, green);
-  analogWrite(PIN_LED_BLUE, blue);
-
-  currentRed = red;
-  currentGreen = green;
-  currentBlue = blue;
-}
-
-void turnLedOff() {
-  analogWrite(PIN_LED_RED, 0);
-  analogWrite(PIN_LED_GREEN, 0);
-  analogWrite(PIN_LED_BLUE, 0);
-}
-
-void blink(Blink blink) {
-  int prevRed = currentRed;
-  int prevGreen = currentGreen;
-  int prevBlue = currentBlue;
-
-  Serial.println(blink.message);
-
-  for (int i = 0; i < blink.times; i++) {
-    Serial.printf("Set color: %d %d %d\n", blink.colour.red, blink.colour.green, blink.colour.blue);
-    setColor(blink.colour.red, blink.colour.green, blink.colour.blue);
-    delay(200);
-
-    Serial.println("Turn led off");
-    turnLedOff();
-    delay(200);
-  }
-
-  delay(2000);
-
-  setColor(prevRed, prevGreen, prevBlue);
-}
-
-void changeColour(Colour colour) {
-  setColor(colour.red, colour.green, colour.blue);
 }
 
 void audio_info(const char *info) {

@@ -20,6 +20,7 @@ private:
 public:
     WiFiControl(Preferences prefs);
     void setupWiFi();
+    bool isConnected();
     void reconnect();
     void clearCredentials();
 };
