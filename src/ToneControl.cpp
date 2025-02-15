@@ -1,54 +1,43 @@
 #include "ToneControl.h"
 
-ToneControl::ToneControl(Encoder* enc, Audio* aud, int encoderSwitchPin)
-    : encoder(enc), audio(aud), switchPin(encoderSwitchPin),
-      currentTone(0), currentLowPass(0), currentHighPass(0) {}
+ToneControl::ToneControl(AiEsp32RotaryEncoder* enc, Audio* aud)
+    : encoder(enc), audio(aud) {}
 
 void ToneControl::handleTone() {
-    int position = (int)(encoder->read() / 4);
+    if (encoder->encoderChanged()) {
+        int encoderValue = encoder->readEncoder();
 
-    if (position != 0) {
-        Serial.printf("position: %d\n", position);
+        Serial.printf("Tone control changed: %d\n", encoderValue);
 
-        if (position < 0 && currentTone > minGain) {
-            currentTone = max(currentTone - 1, minGain);
-        } else if (position > 0 && currentTone < maxGain) {
-            currentTone = min(currentTone + 1, maxGain);
+        int low = 0;
+        int high = 0;
+
+        if (encoderValue < 0) {
+            low = abs(encoderValue);
+            high = (int)(encoderValue / 2);
+        } else if (encoderValue > 0) {
+            low = -abs((int)(encoderValue / 2));
+            high = encoderValue;
         }
 
-        if (currentTone < 0) {
-            currentLowPass = abs(currentTone);
-            currentHighPass = max(-abs(currentTone) / 2, minGain);
-        } else if (currentTone > 0) {
-            currentHighPass = currentTone;
-            currentLowPass = max(-currentTone / 2, minGain);
-        } else {
-            currentLowPass = 0;
-            currentHighPass = 0;
-        }
-
-        updateTone();
+        updateTone(low, high);
     }
 }
 
-void ToneControl::updateTone() {
-    audio->setTone(currentLowPass, 0, currentHighPass);
-    encoder->write(0);
+void ToneControl::updateTone(int low, int high) {
+    audio->setTone(low, 0, high);
 
-    Serial.printf("Tone: %d, Bass: %d, Treble: %d\n", currentTone, currentLowPass, currentHighPass);
+    Serial.printf("Bass: %d, Treble: %d\n", low, high);
 }
 
 void ToneControl::handleReset() {
     static bool buttonPressed = false;
 
-    if (digitalRead(switchPin) == LOW) {
+    if (encoder->isEncoderButtonClicked()) {
         if (!buttonPressed) {
             buttonPressed = !buttonPressed;
-            currentLowPass = 0;
-            currentHighPass = 0;
-            currentTone = 0;
-
-            updateTone();
+            encoder->setEncoderValue(0);
+            updateTone(0, 0);
 
             Serial.println("Tone reset to neutral");
         }

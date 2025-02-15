@@ -4,22 +4,20 @@
 #include <Arduino.h>
 #include <Encoder.h>
 #include <Audio.h>
+#include <AiEsp32RotaryEncoder.h>
+
+#define TONE_CONTROL_MIN_BOUNDRY -8
+#define TONE_CONTROL_MAX_BOUNDRY 10
 
 class ToneControl {
 private:
-    Encoder* encoder;
+    AiEsp32RotaryEncoder* encoder;
     Audio* audio;
-    int switchPin;
-    int currentTone;
-    int currentLowPass;
-    int currentHighPass;
-    static const int minGain = -8;
-    static const int maxGain = 10;
 
-    void updateTone();
+    void updateTone(int low, int high);
 
 public:
-    ToneControl(Encoder* enc, Audio* aud, int encoderSwitchPin);
+    ToneControl(AiEsp32RotaryEncoder* enc, Audio* aud);
     void handleTone();
     void handleReset();
 };
