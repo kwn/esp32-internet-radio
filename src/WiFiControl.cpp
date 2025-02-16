@@ -5,11 +5,11 @@
 
 WiFiControl* WiFiControl::instance = nullptr;
 
-WiFiControl::WiFiControl(Preferences prefs) {
-    preferences = prefs;
-    preferences.begin("wifi", false);
-
+WiFiControl::WiFiControl(Preferences* prefs):
+preferences(prefs) {
     instance = this;
+
+    preferences->begin("wifi");
 }
 
 void WiFiControl::setupWiFi() {
@@ -43,20 +43,20 @@ void WiFiControl::reconnect() {
 
 void WiFiControl::clearCredentials() {
     Serial.println("WiFi Control: Clearing WiFi credentials.");
-    preferences.remove("ssid");
-    preferences.remove("password");
+    preferences->remove("ssid");
+    preferences->remove("password");
 }
 
 void WiFiControl::saveCredentials(const String& ssid, const String& password) {
     Serial.println("WiFi Control: Saving WiFi credentials.");
-    preferences.putString("ssid", ssid);
-    preferences.putString("password", password);
+    preferences->putString("ssid", ssid);
+    preferences->putString("password", password);
 }
 
 void WiFiControl::loadCredentials(String& ssid, String& password) {
     Serial.println("WiFi Control: Loading WiFi credentials.");
-    ssid = preferences.getString("ssid", "");
-    password = preferences.getString("password", "");
+    ssid = preferences->getString("ssid", "");
+    password = preferences->getString("password", "");
 }
 
 void WiFiControl::wpsStart() {

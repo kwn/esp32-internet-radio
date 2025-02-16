@@ -7,7 +7,7 @@
 
 class WiFiControl {
 private:
-    Preferences preferences;
+    Preferences *preferences;
     static WiFiControl* instance;
 
     void wpsStart();
@@ -18,7 +18,7 @@ private:
     static void staticHandleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
 
 public:
-    WiFiControl(Preferences prefs);
+    WiFiControl(Preferences* prefs);
     void setupWiFi();
     bool isConnected();
     void reconnect();

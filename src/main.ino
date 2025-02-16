@@ -1,6 +1,7 @@
 #include <Audio.h>
 #include <AiEsp32RotaryEncoder.h>
 #include <esp_bt.h>
+#include <Preferences.h>
 
 #include "VolumeControl.h"
 #include "StationControl.h"
@@ -62,10 +63,10 @@ void setup() {
     audio.forceMono(true);
 
     stationControl = new StationControl(&audio, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
-    wifiControl = new WiFiControl(preferences);
+    wifiControl = new WiFiControl(&preferences);
     ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
-    volumeControl = new VolumeControl(&audio, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
-    toneControl = new ToneControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
+    volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
+    toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
     ledControl->setColour(COLOUR_RED);
     wifiControl->setupWiFi();

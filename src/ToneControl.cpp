@@ -2,14 +2,21 @@
 
 ToneControl* ToneControl::instance = nullptr;
 
-ToneControl::ToneControl(Audio* aud, int pinCLK, int pinDT, int pinSW):
-    audio(aud) {
+ToneControl::ToneControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs) {
     instance = this;
+
+    preferences->begin("tone");
+    int initialTone = preferences->getInt("tone", TONE_CONTROL_INITIAL_TONE);
+
+    updateTone(initialTone);
+
     encoder = new AiEsp32RotaryEncoder(pinCLK, pinDT, pinSW, -1, ROTARY_ENCODER_STEPS);
     encoder->begin();
     encoder->setup(readEncoderISR);
     encoder->setBoundaries(TONE_CONTROL_MIN_BOUNDRY, TONE_CONTROL_MAX_BOUNDRY, false);
     encoder->disableAcceleration();
+    encoder->setEncoderValue(initialTone);
 }
 
 void IRAM_ATTR ToneControl::readEncoderISR() {
@@ -21,24 +28,27 @@ void IRAM_ATTR ToneControl::readEncoderISR() {
 void ToneControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
-        int low = 0;
-        int high = 0;
 
         Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
 
-        if (encoderValue < 0) {
-            low = abs(encoderValue);
-            high = (int)(encoderValue / 2);
-        } else if (encoderValue > 0) {
-            low = -abs(encoderValue / 2);
-            high = encoderValue;
-        }
-
-        updateTone(low, high);
+        updateTone(encoderValue);
     }
 }
 
-void ToneControl::updateTone(int low, int high) {
+void ToneControl::updateTone(int tone) {
+    preferences->putInt("tone", tone);
+
+    int low = 0;
+    int high = 0;
+
+    if (tone < 0) {
+        low = abs(tone);
+        high = (int)(tone / 2);
+    } else if (tone > 0) {
+        low = -abs(tone / 2);
+        high = tone;
+    }
+
     audio->setTone(low, 0, high);
 
     Serial.printf("ToneControl: Bass: %d, Treble: %d\n", low, high);
@@ -50,7 +60,7 @@ void ToneControl::handleReset() {
     if (encoder->isEncoderButtonDown() && !buttonPressed) {
         buttonPressed = true;
         encoder->setEncoderValue(0);
-        updateTone(0, 0);
+        updateTone(0);
 
         Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {
