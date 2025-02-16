@@ -47,15 +47,13 @@ void ToneControl::updateTone(int low, int high) {
 void ToneControl::handleReset() {
     static bool buttonPressed = false;
 
-    if (encoder->isEncoderButtonDown()) {
-        if (!buttonPressed) {
-            buttonPressed = true;
-            encoder->setEncoderValue(0);
-            updateTone(0, 0);
+    if (encoder->isEncoderButtonDown() && !buttonPressed) {
+        buttonPressed = true;
+        encoder->setEncoderValue(0);
+        updateTone(0, 0);
 
-            Serial.println("Tone reset to neutral");
-        }
-    } else {
+        Serial.println("Tone reset to neutral");
+    } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }
 }

@@ -41,22 +41,15 @@ void VolumeControl::updateVolume(int volume) {
 void VolumeControl::handleMute() {
     static bool buttonPressed = false;
 
-    if (encoder->isEncoderButtonDown()) {
-        if (!buttonPressed) {
-            isMuted = !isMuted;
-            buttonPressed = true;
+    if (encoder->isEncoderButtonDown() && !buttonPressed) {
+        isMuted = !isMuted;
+        buttonPressed = true;
 
-            if (isMuted) {
-                audio->setVolume(0);
-                encoder->setEncoderValue(0);
-                Serial.println("Muted");
-            } else {
-                audio->setVolume(muteVolume);
-                encoder->setEncoderValue(muteVolume);
-                Serial.println("Unmuted");
-            }
-        }
-    } else {
+        audio->setVolume(isMuted ? 0 : muteVolume);
+        encoder->setEncoderValue(isMuted ? 0 : muteVolume);
+
+        Serial.println(isMuted ? "Muted" : "Unmuted");
+    } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }
 }

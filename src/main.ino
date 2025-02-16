@@ -20,6 +20,9 @@
 #define PIN_ENCODER2_CLK 35
 #define PIN_ENCODER2_DT 32
 #define PIN_ENCODER2_SW 33
+#define PIN_ENCODER3_CLK 14
+#define PIN_ENCODER3_DT 12
+#define PIN_ENCODER3_SW 13
 
 Audio audio;
 Preferences preferences;
@@ -47,14 +50,17 @@ void setup() {
     pinMode(PIN_ENCODER2_DT, INPUT);
     pinMode(PIN_ENCODER2_CLK, INPUT);
     pinMode(PIN_ENCODER2_SW, INPUT);
+    pinMode(PIN_ENCODER3_DT, INPUT);
+    pinMode(PIN_ENCODER3_CLK, INPUT);
+    pinMode(PIN_ENCODER3_SW, INPUT);
 
     encoder1 = new Encoder(PIN_ENCODER1_CLK, PIN_ENCODER1_DT);
 
     stationControl = new StationControl(encoder1, &audio);
     wifiControl = new WiFiControl(preferences);
     ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
-    volumeControl = new VolumeControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
-    // toneControl = new ToneControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
+    volumeControl = new VolumeControl(&audio, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
+    toneControl = new ToneControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
     ledControl->setColour(COLOUR_RED);
 
@@ -69,8 +75,8 @@ void setup() {
 void loop() {
     volumeControl->handleChange();
     volumeControl->handleMute();
-    // toneControl->handleChange();
-    // toneControl->handleReset();
+    toneControl->handleChange();
+    toneControl->handleReset();
     stationControl->handleStationChange();
 
     if (wifiControl->isConnected()) {
