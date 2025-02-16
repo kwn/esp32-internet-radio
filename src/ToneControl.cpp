@@ -18,12 +18,6 @@ void IRAM_ATTR ToneControl::readEncoderISR() {
     }
 }
 
-void ToneControl::updateTone(int low, int high) {
-    audio->setTone(low, 0, high);
-
-    Serial.printf("Bass: %d, Treble: %d\n", low, high);
-}
-
 void ToneControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
@@ -44,12 +38,18 @@ void ToneControl::handleChange() {
     }
 }
 
+void ToneControl::updateTone(int low, int high) {
+    audio->setTone(low, 0, high);
+
+    Serial.printf("Bass: %d, Treble: %d\n", low, high);
+}
+
 void ToneControl::handleReset() {
     static bool buttonPressed = false;
 
     if (encoder->isEncoderButtonDown()) {
         if (!buttonPressed) {
-            buttonPressed = !buttonPressed;
+            buttonPressed = true;
             encoder->setEncoderValue(0);
             updateTone(0, 0);
 

@@ -1,25 +1,28 @@
 #ifndef VOLUMECONTROL_H
 #define VOLUMECONTROL_H
 
-#include <Encoder.h>
 #include <Audio.h>
+#include <AiEsp32RotaryEncoder.h>
+
+#define VOLUME_CONTROL_MIN_BOUNDRY 0
+#define VOLUME_CONTROL_MAX_BOUNDRY 21
+#define VOLUME_CONTROL_INITIAL_VOLUME 21
+#define ROTARY_ENCODER_STEPS 4
 
 class VolumeControl {
 private:
-    Encoder* encoder;
+    AiEsp32RotaryEncoder* encoder;
     Audio* audio;
-    int currentVolume;
+    static VolumeControl* instance;
     bool isMuted;
-    int switchPin;
+    int muteVolume;
 
-    bool volumeDecreased(int newVolume);
-    bool volumeIncreased(int newVolume);
-    void increaseVolume(int volumeChange);
-    void decreaseVolume(int volumeChange);
+    static void IRAM_ATTR readEncoderISR();
+    void updateVolume(int volume);
 
 public:
-    VolumeControl(Encoder* enc, Audio* aud, int encoderSwitchPin, int initialVolume = 21);
-    void handleVolume();
+    VolumeControl(Audio* aud, int pinCLK, int pinDT, int pinSW);
+    void handleChange();
     void handleMute();
 };
 
