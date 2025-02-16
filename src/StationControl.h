@@ -1,19 +1,26 @@
 #ifndef STATIONCONTROL_H
 #define STATIONCONTROL_H
 
-#include <Encoder.h>
 #include <Audio.h>
+#include <AiEsp32RotaryEncoder.h>
+
+#define STATION_CONTROL_MIN_BOUNDRY 0
+#define STATION_CONTROL_MAX_BOUNDRY 6
+#define STATION_CONTROL_INITIAL_STATION 0
+#define ROTARY_ENCODER_STEPS 4
 
 class StationControl {
 private:
-    Encoder* encoder;
+    AiEsp32RotaryEncoder* encoder;
     Audio* audio;
-    int currentStation;
+    static StationControl* instance;
     static const char* stations[];
-    static const int numStations;
+
+
+    static void IRAM_ATTR readEncoderISR();
 
 public:
-    StationControl(Encoder* enc, Audio* aud, int initialStation = 0);
+    StationControl(Audio* aud, int pinCLK, int pinDT, int pinSW);
     void handleStationChange();
     void reconnect();
 };

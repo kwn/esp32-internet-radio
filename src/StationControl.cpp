@@ -9,27 +9,34 @@ const char* StationControl::stations[] = {
   "https://s3.slotex.pl:7046/stream/",
   "https://ssl-1.radiohost.pl:9680/stream"
 };
-const int StationControl::numStations = sizeof(StationControl::stations) / sizeof(StationControl::stations[0]);
 
-StationControl::StationControl(Encoder* enc, Audio* aud, int initialStation) {
-    encoder = enc;
-    audio = aud;
-    currentStation = initialStation;
+StationControl* StationControl::instance = nullptr;
+
+StationControl::StationControl(Audio* aud, int pinCLK, int pinDT, int pinSW):
+    audio(aud) {
+    instance = this;
+    encoder = new AiEsp32RotaryEncoder(pinCLK, pinDT, pinSW, -1, ROTARY_ENCODER_STEPS);
+    encoder->begin();
+    encoder->setup(readEncoderISR);
+    encoder->setBoundaries(STATION_CONTROL_MIN_BOUNDRY, STATION_CONTROL_MAX_BOUNDRY, false);
+    encoder->disableAcceleration();
+    encoder->setEncoderValue(STATION_CONTROL_INITIAL_STATION);
+}
+
+void IRAM_ATTR StationControl::readEncoderISR() {
+    if (instance) {
+        instance->encoder->readEncoder_ISR();
+    }
 }
 
 void StationControl::handleStationChange() {
-    int newStation = (int)(encoder->read() / 4);
-
-    if (newStation != 0) {
-        currentStation = max(0, min(currentStation + newStation, numStations - 1));
-
+    if (encoder->encoderChanged()) {
         reconnect();
 
-        Serial.println("Set station to " + String(currentStation));
+        Serial.println("Set station to " + encoder->readEncoder());
     }
 }
 
 void StationControl::reconnect() {
-    audio->connecttohost(stations[currentStation]);
-    encoder->write(0);
+    audio->connecttohost(stations[encoder->readEncoder()]);
 }

@@ -56,7 +56,7 @@ void setup() {
 
     encoder1 = new Encoder(PIN_ENCODER1_CLK, PIN_ENCODER1_DT);
 
-    stationControl = new StationControl(encoder1, &audio);
+    stationControl = new StationControl(&audio, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     wifiControl = new WiFiControl(preferences);
     ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
     volumeControl = new VolumeControl(&audio, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
