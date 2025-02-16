@@ -47,3 +47,38 @@ void StationControl::handleStationChange() {
 void StationControl::reconnect() {
     audio->connecttohost(stations[encoder->readEncoder()]);
 }
+
+void StationControl::handleFactoryReset() {
+    static unsigned long buttonPressStart = 0;
+    static int lastCountdown = -1;
+    static bool countingDown = false;
+
+    if (encoder->isEncoderButtonDown()) {
+        if (!countingDown) {
+            buttonPressStart = millis();
+            countingDown = true;
+            Serial.println("StationControl: Factory reset countdown started...");
+        }
+
+        unsigned long elapsed = millis() - buttonPressStart;
+        int remainingTime = 5 - (elapsed / 1000);
+
+        if (remainingTime != lastCountdown && remainingTime >= 0) {
+            Serial.printf("Factory reset in %d seconds...\n", remainingTime);
+            lastCountdown = remainingTime;
+        }
+
+        if (elapsed >= 5000) {
+            Serial.println("Factory reset now!");
+            preferences->clear();
+            ESP.restart();
+        }
+    } else {
+        if (countingDown) {
+            Serial.println("StationControl: Reset cancelled");
+        }
+        countingDown = false;
+        lastCountdown = -1;
+    }
+}
+

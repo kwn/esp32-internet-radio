@@ -17,7 +17,7 @@ void WiFiControl::setupWiFi() {
     WiFi.onEvent(staticHandleWiFiEvent);
 
     Serial.println("WiFi Control: Loading WiFi credentials.");
-    String ssid = preferences->getString("ssid", "");;
+    String ssid = preferences->getString("ssid", "");
     String password = preferences->getString("password", "");
 
     if (!ssid.isEmpty() && !password.isEmpty()) {
@@ -38,12 +38,6 @@ void WiFiControl::reconnect() {
         Serial.println("WiFi Control: Reconnecting to WiFi.");
         WiFi.reconnect();
     }
-}
-
-void WiFiControl::clearCredentials() {
-    Serial.println("WiFi Control: Clearing WiFi credentials.");
-    preferences->remove("ssid");
-    preferences->remove("password");
 }
 
 void WiFiControl::wpsStart() {
@@ -94,6 +88,9 @@ void WiFiControl::handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) 
 
             instance->preferences->putString("ssid", WiFi.SSID());
             instance->preferences->putString("password", WiFi.psk());
+            break;
+        case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+            Serial.println("WiFi Control: Connected to station");
             break;
         case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
             Serial.println("WiFi Control: Disconnected from station, attempting reconnection");

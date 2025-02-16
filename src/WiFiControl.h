@@ -20,7 +20,6 @@ public:
     void setupWiFi();
     bool isConnected();
     void reconnect();
-    void clearCredentials();
     void displayWiFiSignalStrength();
 };
 

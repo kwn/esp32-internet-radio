@@ -24,6 +24,7 @@ private:
 public:
     StationControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW);
     void handleStationChange();
+    void handleFactoryReset();
     void reconnect();
 };
 

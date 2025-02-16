@@ -74,6 +74,8 @@ void setup() {
 }
 
 void loop() {
+    stationControl->handleFactoryReset();
+
     if (wifiControl->isConnected()) {
         volumeControl->handleChange();
         volumeControl->handleMute();
