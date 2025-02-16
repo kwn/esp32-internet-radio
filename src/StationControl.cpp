@@ -12,15 +12,18 @@ const char* StationControl::stations[] = {
 
 StationControl* StationControl::instance = nullptr;
 
-StationControl::StationControl(Audio* aud, int pinCLK, int pinDT, int pinSW):
-    audio(aud) {
+StationControl::StationControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs) {
     instance = this;
+
+    int initialStation = preferences->getInt("station", STATION_CONTROL_INITIAL_STATION);
+
     encoder = new AiEsp32RotaryEncoder(pinCLK, pinDT, pinSW, -1, ROTARY_ENCODER_STEPS);
     encoder->begin();
     encoder->setup(readEncoderISR);
     encoder->setBoundaries(STATION_CONTROL_MIN_BOUNDRY, STATION_CONTROL_MAX_BOUNDRY, false);
     encoder->disableAcceleration();
-    encoder->setEncoderValue(STATION_CONTROL_INITIAL_STATION);
+    encoder->setEncoderValue(initialStation);
 }
 
 void IRAM_ATTR StationControl::readEncoderISR() {
@@ -31,7 +34,11 @@ void IRAM_ATTR StationControl::readEncoderISR() {
 
 void StationControl::handleStationChange() {
     if (encoder->encoderChanged()) {
-        Serial.println("StationControl: Set station to " + String(stations[encoder->readEncoder()]));
+        int station = encoder->readEncoder();
+
+        Serial.println("StationControl: Set station to " + String(stations[station]));
+
+        preferences->putInt("station", station);
 
         reconnect();
     }

@@ -39,6 +39,7 @@ void setup() {
     Serial.println("Main: Starting setup...");
 
     esp_bt_controller_disable();
+    preferences.begin("radio");
 
     pinMode(PIN_LED_RED, OUTPUT);
     pinMode(PIN_LED_GREEN, OUTPUT);
@@ -62,7 +63,7 @@ void setup() {
     audio.setBufsize(24 * 1024, -1);
     audio.forceMono(true);
 
-    stationControl = new StationControl(&audio, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
+    stationControl = new StationControl(&audio, &preferences, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     wifiControl = new WiFiControl(&preferences);
     ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
@@ -79,14 +80,14 @@ void loop() {
         toneControl->handleChange();
         toneControl->handleReset();
         stationControl->handleStationChange();
-        wifiControl->displayWiFiSignalStrength();
+        // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
             audio.loop();
             ledControl->setColour(COLOUR_GREEN);
         } else {
             Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
-            delay(2000);
+            delay(1000);
             stationControl->reconnect();
         }
     } else {

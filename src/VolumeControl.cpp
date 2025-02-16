@@ -6,8 +6,6 @@ VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, int pinCLK, int pin
     audio(aud), preferences(prefs), isMuted(false) {
     instance = this;
 
-    preferences->begin("volume");
-
     int initialVolume = preferences->getInt("volume", VOLUME_CONTROL_INITIAL_VOLUME);
 
     updateVolume(initialVolume);

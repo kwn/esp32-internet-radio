@@ -12,8 +12,6 @@ private:
 
     void wpsStart();
     void wpsStop();
-    void saveCredentials(const String& ssid, const String& password);
-    void loadCredentials(String& ssid, String& password);
     void handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
     static void staticHandleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
 

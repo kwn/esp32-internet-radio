@@ -6,7 +6,6 @@ ToneControl::ToneControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, 
     audio(aud), preferences(prefs) {
     instance = this;
 
-    preferences->begin("tone");
     int initialTone = preferences->getInt("tone", TONE_CONTROL_INITIAL_TONE);
 
     updateTone(initialTone);
