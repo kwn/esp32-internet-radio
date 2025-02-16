@@ -1,6 +1,6 @@
 #include <Audio.h>
-#include <Encoder.h>
 #include <AiEsp32RotaryEncoder.h>
+#include <esp_bt.h>
 
 #include "VolumeControl.h"
 #include "StationControl.h"
@@ -20,13 +20,12 @@
 #define PIN_ENCODER2_CLK 35
 #define PIN_ENCODER2_DT 32
 #define PIN_ENCODER2_SW 33
-#define PIN_ENCODER3_CLK 14
-#define PIN_ENCODER3_DT 12
-#define PIN_ENCODER3_SW 13
+#define PIN_ENCODER3_CLK 17
+#define PIN_ENCODER3_DT 16
+#define PIN_ENCODER3_SW 4
 
 Audio audio;
 Preferences preferences;
-Encoder *encoder1;
 
 VolumeControl *volumeControl;
 StationControl *stationControl;
@@ -36,7 +35,9 @@ ToneControl *toneControl;
 
 void setup() {
     Serial.begin(9600);
-    Serial.println("Starting setup...");
+    Serial.println("Main: Starting setup...");
+
+    esp_bt_controller_disable();
 
     pinMode(PIN_LED_RED, OUTPUT);
     pinMode(PIN_LED_GREEN, OUTPUT);
@@ -46,7 +47,7 @@ void setup() {
     pinMode(PIN_I2S_LRC, OUTPUT);
     pinMode(PIN_ENCODER1_DT, INPUT);
     pinMode(PIN_ENCODER1_CLK, INPUT);
-    pinMode(PIN_ENCODER1_SW, INPUT_PULLUP); // doesn't have pull up resistor for switch
+    pinMode(PIN_ENCODER1_SW, INPUT);
     pinMode(PIN_ENCODER2_DT, INPUT);
     pinMode(PIN_ENCODER2_CLK, INPUT);
     pinMode(PIN_ENCODER2_SW, INPUT);
@@ -54,7 +55,11 @@ void setup() {
     pinMode(PIN_ENCODER3_CLK, INPUT);
     pinMode(PIN_ENCODER3_SW, INPUT);
 
-    encoder1 = new Encoder(PIN_ENCODER1_CLK, PIN_ENCODER1_DT);
+    Serial.println("Main: Setting up audio...");
+
+    audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
+    audio.setBufsize(24 * 1024, -1);
+    audio.forceMono(true);
 
     stationControl = new StationControl(&audio, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     wifiControl = new WiFiControl(preferences);
@@ -63,33 +68,28 @@ void setup() {
     toneControl = new ToneControl(&audio, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
     ledControl->setColour(COLOUR_RED);
-
-    Serial.println("Setting up audio...");
-
-    audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
-    audio.forceMono(true);
-
     wifiControl->setupWiFi();
 }
 
 void loop() {
-    volumeControl->handleChange();
-    volumeControl->handleMute();
-    toneControl->handleChange();
-    toneControl->handleReset();
-    stationControl->handleStationChange();
-
     if (wifiControl->isConnected()) {
+        volumeControl->handleChange();
+        volumeControl->handleMute();
+        toneControl->handleChange();
+        toneControl->handleReset();
+        stationControl->handleStationChange();
+        wifiControl->displayWiFiSignalStrength();
+
         if (audio.isRunning()) {
             audio.loop();
             ledControl->setColour(COLOUR_GREEN);
         } else {
-            Serial.println("Audio stopped or failed, attempting to reconnect...");
+            Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
             delay(2000);
             stationControl->reconnect();
         }
     } else {
-        Serial.println("Wifi not connected...");
+        Serial.println("Main: Wifi not connected...");
 
         ledControl->setColour(COLOUR_BLUE);
         delay(2000);
@@ -99,21 +99,16 @@ void loop() {
 }
 
 void audio_info(const char *info) {
-    Serial.println("O GURWA!");
-
-    String stringInfo = String(info);
-    Serial.println(stringInfo);
+    // Serial.println("O GURWA!");
+    Serial.println("Main: Audio info: " + String(info));
 }
 
 void audio_id3data(const char *info) {
-    Serial.println("CO TO GURWA JEST?!");
-
-    // String sinfo = String(info);
-    Serial.println(String(info));
+    // Serial.println("CO TO GURWA JEST?!");
+    Serial.println("Main: ID3 info: " + String(info));
 }
 
 void audio_showstreamtitle(const char *info) {
-    Serial.println("CZYMAJCIE MNIE GURWA!");
-    // String sinfo = String(info);
-    Serial.println(String(info));
+    // Serial.println("CZYMAJCIE MNIE GURWA!");
+    Serial.println("Main: Stream info: " + String(info));
 }

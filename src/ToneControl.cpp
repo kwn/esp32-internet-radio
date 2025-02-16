@@ -24,7 +24,7 @@ void ToneControl::handleChange() {
         int low = 0;
         int high = 0;
 
-        Serial.printf("Tone control changed: %d\n", encoderValue);
+        Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
 
         if (encoderValue < 0) {
             low = abs(encoderValue);
@@ -41,7 +41,7 @@ void ToneControl::handleChange() {
 void ToneControl::updateTone(int low, int high) {
     audio->setTone(low, 0, high);
 
-    Serial.printf("Bass: %d, Treble: %d\n", low, high);
+    Serial.printf("ToneControl: Bass: %d, Treble: %d\n", low, high);
 }
 
 void ToneControl::handleReset() {
@@ -52,7 +52,7 @@ void ToneControl::handleReset() {
         encoder->setEncoderValue(0);
         updateTone(0, 0);
 
-        Serial.println("Tone reset to neutral");
+        Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }

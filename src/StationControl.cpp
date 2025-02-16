@@ -31,9 +31,9 @@ void IRAM_ATTR StationControl::readEncoderISR() {
 
 void StationControl::handleStationChange() {
     if (encoder->encoderChanged()) {
-        reconnect();
+        Serial.println("StationControl: Set station to " + String(stations[encoder->readEncoder()]));
 
-        Serial.println("Set station to " + encoder->readEncoder());
+        reconnect();
     }
 }
 

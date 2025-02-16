@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <esp_wps.h>
 #include "WiFiControl.h"
 
@@ -14,7 +13,7 @@ WiFiControl::WiFiControl(Preferences prefs) {
 }
 
 void WiFiControl::setupWiFi() {
-    Serial.println("Setting up WiFi...");
+    Serial.println("WiFi Control: Setting up WiFi...");
 
     WiFi.onEvent(staticHandleWiFiEvent);
     WiFi.mode(WIFI_MODE_STA);
@@ -23,10 +22,10 @@ void WiFiControl::setupWiFi() {
     loadCredentials(ssid, password);
 
     if (!ssid.isEmpty() && !password.isEmpty()) {
-        Serial.println("SSID and password found. Connecting to WiFi.");
+        Serial.println("WiFi Control: SSID and password found. Connecting to WiFi.");
         WiFi.begin(ssid.c_str(), password.c_str());
     } else {
-        Serial.println("SSID and password not found. Starting WPS.");
+        Serial.println("WiFi Control: SSID and password not found. Starting WPS.");
         wpsStart();
     }
 }
@@ -37,25 +36,25 @@ bool WiFiControl::isConnected() {
 
 void WiFiControl::reconnect() {
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("Reconnecting to WiFi.");
+        Serial.println("WiFi Control: Reconnecting to WiFi.");
         WiFi.reconnect();
     }
 }
 
 void WiFiControl::clearCredentials() {
-    Serial.println("Clearing WiFi credentials.");
+    Serial.println("WiFi Control: Clearing WiFi credentials.");
     preferences.remove("ssid");
     preferences.remove("password");
 }
 
 void WiFiControl::saveCredentials(const String& ssid, const String& password) {
-    Serial.println("Saving WiFi credentials.");
+    Serial.println("WiFi Control: Saving WiFi credentials.");
     preferences.putString("ssid", ssid);
     preferences.putString("password", password);
 }
 
 void WiFiControl::loadCredentials(String& ssid, String& password) {
-    Serial.println("Loading WiFi credentials.");
+    Serial.println("WiFi Control: Loading WiFi credentials.");
     ssid = preferences.getString("ssid", "");
     password = preferences.getString("password", "");
 }
@@ -72,20 +71,20 @@ void WiFiControl::wpsStart() {
 
     esp_err_t err = esp_wifi_wps_enable(&config);
     if (err != ESP_OK) {
-        Serial.printf("WPS Enable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
+        Serial.printf("WiFi Control: WPS Enable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
         return;
     }
 
     err = esp_wifi_wps_start(0);
     if (err != ESP_OK) {
-        Serial.printf("WPS Start Failed: 0x%x: %s\n", err, esp_err_to_name(err));
+        Serial.printf("WiFi Control: WPS Start Failed: 0x%x: %s\n", err, esp_err_to_name(err));
     }
 }
 
 void WiFiControl::wpsStop() {
     esp_err_t err = esp_wifi_wps_disable();
     if (err != ESP_OK) {
-        Serial.printf("WPS Disable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
+        Serial.printf("WiFi Control: WPS Disable Failed: 0x%x: %s\n", err, esp_err_to_name(err));
     }
 }
 
@@ -98,31 +97,42 @@ void WiFiControl::staticHandleWiFiEvent(WiFiEvent_t event, arduino_event_info_t 
 void WiFiControl::handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     switch (event) {
         case ARDUINO_EVENT_WIFI_STA_START:
-            Serial.println("Station Mode Started");
+            Serial.println("WiFi Control: Station Mode Started");
             break;
         case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-            Serial.println("Connected to: " + String(WiFi.SSID()));
-            Serial.print("Got IP: ");
+            Serial.println("WiFi Control: Connected to: " + String(WiFi.SSID()));
+            Serial.print("WiFi Control: Got IP: ");
             Serial.println(WiFi.localIP());
             break;
         case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-            Serial.println("Disconnected from station, attempting reconnection");
+            Serial.println("WiFi Control: Disconnected from station, attempting reconnection");
             break;
         case ARDUINO_EVENT_WPS_ER_SUCCESS:
-            Serial.println("WPS Successful, stopping WPS, saving credentials and connecting to: " + String(WiFi.SSID()));
+            Serial.println("WiFi Control: WPS Successful, stopping WPS, saving credentials and connecting to: " + String(WiFi.SSID()));
             saveCredentials(WiFi.SSID(), WiFi.psk());
             wpsStop();
             break;
         case ARDUINO_EVENT_WPS_ER_FAILED:
-            Serial.println("WPS Failed, retrying");
+            Serial.println("WiFi Control: WPS Failed, retrying");
             wpsStart();
             break;
         case ARDUINO_EVENT_WPS_ER_TIMEOUT:
-            Serial.println("WPS Timedout, retrying");
+            Serial.println("WiFi Control: WPS Timedout, retrying");
             wpsStart();
             break;
         default:
-            Serial.println("Unhandled event from WiFi");
+            Serial.println("WiFi Control: Unhandled event from WiFi");
             break;
+    }
+}
+
+void WiFiControl::displayWiFiSignalStrength() {
+    static unsigned long lastPrintTime = 0;
+    unsigned long currentTime = millis();
+
+    if (currentTime - lastPrintTime >= 2000) {
+        lastPrintTime = currentTime;
+        int rssi = WiFi.RSSI();
+        Serial.printf("WiFi Control: RSSI: %d dBm\n", rssi);
     }
 }

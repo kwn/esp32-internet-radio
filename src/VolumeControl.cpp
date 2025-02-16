@@ -25,7 +25,7 @@ void VolumeControl::handleChange() {
     if (!isMuted && encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
 
-        Serial.printf("Volume changed: %d\n", encoderValue);
+        Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
 
         updateVolume(encoderValue);
     }
@@ -35,7 +35,7 @@ void VolumeControl::updateVolume(int volume) {
     audio->setVolume(volume);
     muteVolume = volume;
 
-    Serial.printf("Volume: %d\n", volume);
+    Serial.printf("VolumeControl: Volume: %d\n", volume);
 }
 
 void VolumeControl::handleMute() {
@@ -48,7 +48,7 @@ void VolumeControl::handleMute() {
         audio->setVolume(isMuted ? 0 : muteVolume);
         encoder->setEncoderValue(isMuted ? 0 : muteVolume);
 
-        Serial.println(isMuted ? "Muted" : "Unmuted");
+        Serial.println(isMuted ? "VolumeControl: Muted" : "VolumeControl: Unmuted");
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }

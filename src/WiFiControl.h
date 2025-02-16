@@ -23,6 +23,7 @@ public:
     bool isConnected();
     void reconnect();
     void clearCredentials();
+    void displayWiFiSignalStrength();
 };
 
 #endif
