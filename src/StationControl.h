@@ -4,6 +4,7 @@
 #include <Audio.h>
 #include <AiEsp32RotaryEncoder.h>
 #include <Preferences.h>
+#include "StatusControl.h"
 
 #define STATION_CONTROL_MIN_BOUNDRY 0
 #define STATION_CONTROL_MAX_BOUNDRY 6
@@ -15,6 +16,7 @@ private:
     AiEsp32RotaryEncoder* encoder;
     Audio* audio;
     Preferences* preferences;
+    StatusControl* statusControl;
     static StationControl* instance;
     static const char* stations[];
 
@@ -22,7 +24,7 @@ private:
     static void IRAM_ATTR readEncoderISR();
 
 public:
-    StationControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW);
+    StationControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, int pinCLK, int pinDT, int pinSW);
     void handleStationChange();
     void handleFactoryReset();
     void reconnect();

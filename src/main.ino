@@ -41,6 +41,15 @@ LedControl *ledControl;
 ToneControl *toneControl;
 StatusControl *statusControl;
 
+void ledTask(void *pvParameters) {
+    for (;;) {
+        ledControl->update();
+        // Delay for a short period to allow other tasks to run.
+        // This effectively sets the animation's frame rate. 10ms = ~100 FPS.
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
+
 void setup() {
     Serial.begin(9600);
     Serial.println("Main: Starting setup...");
@@ -74,11 +83,19 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
-    stationControl = new StationControl(&audio, &preferences, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
+    stationControl = new StationControl(&audio, &preferences, statusControl, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
     wifiControl = new WiFiControl(&preferences);
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
+
+    xTaskCreate(
+        ledTask,          // Task function
+        "LED Update Task",// Name of the task
+        2048,             // Stack size of task
+        NULL,             // Parameter of the task
+        1,                // Priority of the task
+        NULL);            // Task handle to keep track of created task
 
     statusControl->setState(WIFI_CONNECTING);
     wifiControl->setupWiFi();
@@ -86,8 +103,6 @@ void setup() {
 
 void loop() {
     stationControl->handleFactoryReset();
-
-    ledControl->update();
 
     if (wifiControl->isConnected()) {
         volumeControl->handleChange();
@@ -98,7 +113,9 @@ void loop() {
         // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
-            statusControl->setState(PLAYING);
+            if (statusControl->getState() != STREAM_BUFFERING) {
+                statusControl->setState(PLAYING);
+            }
             audio.loop();
         } else {
             statusControl->setState(STREAM_BUFFERING);
@@ -137,4 +154,5 @@ void audio_id3data(const char *info) {
 void audio_showstreamtitle(const char *info) {
     // Serial.println("CZYMAJCIE MNIE GURWA!");
     Serial.println("Main: Stream info: " + String(info));
+    statusControl->setState(PLAYING);
 }

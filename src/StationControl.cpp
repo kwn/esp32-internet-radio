@@ -12,8 +12,8 @@ const char* StationControl::stations[] = {
 
 StationControl* StationControl::instance = nullptr;
 
-StationControl::StationControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW):
-    audio(aud), preferences(prefs) {
+StationControl::StationControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs), statusControl(statCtrl) {
     instance = this;
 
     int initialStation = preferences->getInt("station", STATION_CONTROL_INITIAL_STATION);
@@ -37,6 +37,8 @@ void StationControl::handleStationChange() {
         int station = encoder->readEncoder();
 
         Serial.println("StationControl: Set station to " + String(stations[station]));
+
+        statusControl->setState(STREAM_BUFFERING);
 
         preferences->putInt("station", station);
 

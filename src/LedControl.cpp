@@ -97,14 +97,21 @@ void LedControl::showWifiConnecting() {
 }
 
 void LedControl::showStreamBuffering() {
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdate > 50) { // Chase animation
-        lastUpdate = currentTime;
-        for (int i = 0; i < numLeds; i++) {
-            leds[i].fadeToBlackBy(40);
-        }
-        leds[animationStep] = CRGB::YellowGreen;
-        animationStep = (animationStep + 1) % numLeds;
+    // Get the station LED index (reversed).
+    int station = stationControl->getStationNumber();
+    int ledIndex = numLeds - 1 - station;
+
+    // Calculate "breathing" brightness using a sine wave for a smoother, more visible pulse.
+    // 60 BPM = 1 full sine wave cycle per second.
+    uint8_t brightness = beatsin8(60, 0, 255);
+
+    // Clear the strip first.
+    clear();
+
+    // Set the specific LED with the calculated brightness using HSV for better control.
+    if (ledIndex >= 0 && ledIndex < numLeds) {
+        // HUE_ORANGE is ~30. We directly control the Value (brightness) from 0-255.
+        leds[ledIndex] = CHSV(30, 255, brightness);
     }
 }
 
