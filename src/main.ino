@@ -74,8 +74,8 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
-    ledControl = new LedControl(leds, LED_NUMBER, statusControl);
     stationControl = new StationControl(&audio, &preferences, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
+    ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
     wifiControl = new WiFiControl(&preferences);
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
@@ -101,18 +101,23 @@ void loop() {
             statusControl->setState(PLAYING);
             audio.loop();
         } else {
-            Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
             statusControl->setState(STREAM_BUFFERING);
-            delay(1000);
-            stationControl->reconnect();
+
+            static unsigned long lastStreamReconnectAttempt = 0;
+            unsigned long currentTime = millis();
+            if (currentTime - lastStreamReconnectAttempt > 1000) {
+                Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
+                lastStreamReconnectAttempt = currentTime;
+                stationControl->reconnect();
+            }
         }
     } else {
-        Serial.println("Main: Wifi not connected...");
         statusControl->setState(WIFI_CONNECTING);
 
         static unsigned long lastReconnectAttempt = 0;
         unsigned long currentTime = millis();
         if (currentTime - lastReconnectAttempt > 5000) {
+            Serial.println("Main: Wifi not connected...");
             lastReconnectAttempt = currentTime;
             wifiControl->reconnect();
         }

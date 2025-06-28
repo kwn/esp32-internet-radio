@@ -26,6 +26,7 @@ public:
     void handleStationChange();
     void handleFactoryReset();
     void reconnect();
+    int getStationNumber();
 };
 
 #endif

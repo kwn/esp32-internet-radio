@@ -1,7 +1,7 @@
 #include "LedControl.h"
 
-LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl)
-    : leds(leds), numLeds(numLeds), statusControl(statusControl), lastUpdate(0), animationStep(0), direction(1) {}
+LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl)
+    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), lastUpdate(0), animationStep(0), direction(1) {}
 
 void LedControl::update() {
     DeviceState currentState = statusControl->getState();
@@ -109,8 +109,13 @@ void LedControl::showStreamBuffering() {
 }
 
 void LedControl::showPlaying() {
-    fill_solid(leds, numLeds, CRGB::Green);
-    FastLED.setBrightness(40);
+    clear();
+    int station = stationControl->getStationNumber();
+    int ledIndex = numLeds - 1 - station;
+
+    if (ledIndex >= 0 && ledIndex < numLeds) {
+        leds[ledIndex] = CRGB::Orange;
+    }
 }
 
 void LedControl::showMuted() {

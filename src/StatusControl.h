@@ -1,6 +1,8 @@
 #ifndef STATUSCONTROL_H
 #define STATUSCONTROL_H
 
+#include <Arduino.h>
+
 enum DeviceState {
     POWER_ON,
     WIFI_CONNECTING,
@@ -22,6 +24,7 @@ public:
 
 private:
     DeviceState currentState;
+    const char* stateToString(DeviceState state);
 };
 
 #endif // STATUSCONTROL_H 

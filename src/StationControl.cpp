@@ -48,6 +48,10 @@ void StationControl::reconnect() {
     audio->connecttohost(stations[encoder->readEncoder()]);
 }
 
+int StationControl::getStationNumber() {
+    return encoder->readEncoder();
+}
+
 void StationControl::handleFactoryReset() {
     static unsigned long buttonPressStart = 0;
     static int lastCountdown = -1;
