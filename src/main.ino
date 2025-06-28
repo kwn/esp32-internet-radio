@@ -9,6 +9,7 @@
 #include "WiFiControl.h"
 #include "LedControl.h"
 #include "ToneControl.h"
+#include "StatusControl.h"
 
 #define PIN_I2S_DOUT 12
 #define PIN_I2S_BCLK 13
@@ -36,8 +37,9 @@ CRGB leds[LED_NUMBER];
 VolumeControl *volumeControl;
 StationControl *stationControl;
 WiFiControl *wifiControl;
-// LedControl *ledControl;
+LedControl *ledControl;
 ToneControl *toneControl;
+StatusControl *statusControl;
 
 void setup() {
     Serial.begin(9600);
@@ -60,6 +62,9 @@ void setup() {
     pinMode(PIN_ENCODER3_CLK, INPUT);
     pinMode(PIN_ENCODER3_SW, INPUT);
 
+    statusControl = new StatusControl();
+    statusControl->setState(POWER_ON);
+
     Serial.println("Main: Setting up audio...");
 
     audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
@@ -69,25 +74,20 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
-    // ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
+    ledControl = new LedControl(leds, LED_NUMBER, statusControl);
     stationControl = new StationControl(&audio, &preferences, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     wifiControl = new WiFiControl(&preferences);
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
-    // ledControl->setColour(COLOUR_RED);
+    statusControl->setState(WIFI_CONNECTING);
     wifiControl->setupWiFi();
 }
 
 void loop() {
     stationControl->handleFactoryReset();
 
-    for (int i = 0; i < LED_NUMBER; i++) {
-        leds[i] = CRGB::Blue;
-        FastLED.show();
-        delay(20);
-        leds[i] = CRGB::Black;
-    }
+    ledControl->update();
 
     if (wifiControl->isConnected()) {
         volumeControl->handleChange();
@@ -98,20 +98,24 @@ void loop() {
         // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
+            statusControl->setState(PLAYING);
             audio.loop();
-            // ledControl->setColour(COLOUR_GREEN);
         } else {
             Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
+            statusControl->setState(STREAM_BUFFERING);
             delay(1000);
             stationControl->reconnect();
         }
     } else {
         Serial.println("Main: Wifi not connected...");
+        statusControl->setState(WIFI_CONNECTING);
 
-        // ledControl->setColour(COLOUR_BLUE);
-        delay(2000);
-
-        wifiControl->reconnect();
+        static unsigned long lastReconnectAttempt = 0;
+        unsigned long currentTime = millis();
+        if (currentTime - lastReconnectAttempt > 5000) {
+            lastReconnectAttempt = currentTime;
+            wifiControl->reconnect();
+        }
     }
 }
 
