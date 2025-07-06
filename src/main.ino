@@ -89,13 +89,14 @@ void setup() {
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
-    xTaskCreate(
+    xTaskCreatePinnedToCore(
         ledTask,          // Task function
         "LED Update Task",// Name of the task
         2048,             // Stack size of task
         NULL,             // Parameter of the task
         1,                // Priority of the task
-        NULL);            // Task handle to keep track of created task
+        NULL,             // Task handle
+        1);               // Core ID
 
     statusControl->setState(WIFI_CONNECTING);
     wifiControl->setupWiFi();

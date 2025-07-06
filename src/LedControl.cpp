@@ -59,40 +59,29 @@ void LedControl::showWifiConnecting() {
     if (currentTime - lastUpdate > 60) { // Controls the speed of the scanner
         lastUpdate = currentTime;
 
-        // Clear all LEDs to ensure a clean trail
         clear();
-
-        // Draw the scanner with a gradient tail.
-        // The 'direction' variable makes the tail follow the head correctly.
         
-        // Head of the scanner (brightest)
-        leds[animationStep] = CRGB::Blue;
+        // Draw the scanner head (brightest). HUE_BLUE is 160.
+        leds[animationStep] = CHSV(160, 255, 255);
 
-        // Trail segment 1
-        int tail1 = animationStep - (1 * direction);
-        if (tail1 >= 0 && tail1 < numLeds) {
-            leds[tail1] = CRGB(0, 0, 100); // Medium Blue
+        // Draw the gradient tail using a loop.
+        for (int i = 1; i <= 3; i++) {
+            int tailIndex = animationStep - (i * direction);
+            if (tailIndex >= 0 && tailIndex < numLeds) {
+                // Decrease brightness for each segment of the tail.
+                leds[tailIndex] = CHSV(160, 255, 255 - (i * 60));
+            }
         }
 
-        // Trail segment 2
-        int tail2 = animationStep - (2 * direction);
-        if (tail2 >= 0 && tail2 < numLeds) {
-            leds[tail2] = CRGB(0, 0, 50); // Dim Blue
+        // Check for boundaries and reverse direction *before* moving the scanner
+        if (animationStep >= numLeds - 1) {
+            direction = -1;
+        } else if (animationStep <= 0) {
+            direction = 1;
         }
 
-        // Trail segment 3
-        int tail3 = animationStep - (3 * direction);
-        if (tail3 >= 0 && tail3 < numLeds) {
-            leds[tail3] = CRGB(0, 0, 20); // Dimmest Blue
-        }
-
-        // Move the scanner head
+        // Move the scanner head for the next frame
         animationStep += direction;
-
-        // Reverse direction if it hits either end of the strip
-        if (animationStep <= 0 || animationStep >= numLeds - 1) {
-            direction *= -1;
-        }
     }
 }
 
