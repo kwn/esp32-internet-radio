@@ -114,16 +114,14 @@ void loop() {
         // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
-            if (statusControl->getState() != STREAM_BUFFERING) {
-                statusControl->setState(PLAYING);
-            }
+            statusControl->setState(PLAYING);
             audio.loop();
         } else {
             statusControl->setState(STREAM_BUFFERING);
 
             static unsigned long lastStreamReconnectAttempt = 0;
             unsigned long currentTime = millis();
-            if (currentTime - lastStreamReconnectAttempt > 1000) {
+            if (currentTime - lastStreamReconnectAttempt > 5000) {
                 Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
                 lastStreamReconnectAttempt = currentTime;
                 stationControl->reconnect();
@@ -155,5 +153,4 @@ void audio_id3data(const char *info) {
 void audio_showstreamtitle(const char *info) {
     // Serial.println("CZYMAJCIE MNIE GURWA!");
     Serial.println("Main: Stream info: " + String(info));
-    statusControl->setState(PLAYING);
 }
