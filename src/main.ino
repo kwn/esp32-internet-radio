@@ -111,7 +111,6 @@ void loop() {
         toneControl->handleChange();
         toneControl->handleReset();
         stationControl->handleStationChange();
-        // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
             statusControl->setState(PLAYING);

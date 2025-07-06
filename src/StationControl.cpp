@@ -35,14 +35,11 @@ void IRAM_ATTR StationControl::readEncoderISR() {
 void StationControl::handleStationChange() {
     if (encoder->encoderChanged()) {
         int station = encoder->readEncoder();
-
-        Serial.println("StationControl: Set station to " + String(stations[station]));
-
-        statusControl->setState(STREAM_BUFFERING);
-
         preferences->putInt("station", station);
 
-        reconnect();
+        audio->stopSong();
+
+        Serial.println("StationControl: Set station to " + String(stations[station]));
     }
 }
 
