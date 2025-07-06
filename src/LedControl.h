@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "StatusControl.h"
 #include "StationControl.h"
+#include "Debouncer.h"
 
 class LedControl {
 public:
@@ -16,9 +17,9 @@ private:
     int numLeds;
     StatusControl* statusControl;
     StationControl* stationControl;
-    unsigned long lastUpdate;
     int animationStep;
     int direction;
+    Debouncer animationDebouncer;
 
     // Effect methods
     void showPowerOn();

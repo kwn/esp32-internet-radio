@@ -10,6 +10,7 @@
 #include "LedControl.h"
 #include "ToneControl.h"
 #include "StatusControl.h"
+#include "Debouncer.h"
 
 #define PIN_I2S_DOUT 12
 #define PIN_I2S_BCLK 13
@@ -40,6 +41,9 @@ WiFiControl *wifiControl;
 LedControl *ledControl;
 ToneControl *toneControl;
 StatusControl *statusControl;
+
+Debouncer wifiReconnectDebouncer(5000);
+Debouncer streamReconnectDebouncer(5000);
 
 void ledTask(void *pvParameters) {
     for (;;) {
@@ -118,22 +122,16 @@ void loop() {
         } else {
             statusControl->setState(STREAM_BUFFERING);
 
-            static unsigned long lastStreamReconnectAttempt = 0;
-            unsigned long currentTime = millis();
-            if (currentTime - lastStreamReconnectAttempt > 5000) {
+            if (streamReconnectDebouncer.hasElapsed()) {
                 Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
-                lastStreamReconnectAttempt = currentTime;
                 stationControl->reconnect();
             }
         }
     } else {
         statusControl->setState(WIFI_CONNECTING);
 
-        static unsigned long lastReconnectAttempt = 0;
-        unsigned long currentTime = millis();
-        if (currentTime - lastReconnectAttempt > 5000) {
+        if (wifiReconnectDebouncer.hasElapsed()) {
             Serial.println("Main: Wifi not connected...");
-            lastReconnectAttempt = currentTime;
             wifiControl->reconnect();
         }
     }

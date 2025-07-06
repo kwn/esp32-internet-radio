@@ -4,11 +4,13 @@
 #include <WiFi.h>
 #include <esp_wps.h>
 #include <Preferences.h>
+#include "Debouncer.h"
 
 class WiFiControl {
 private:
     Preferences *preferences;
     static WiFiControl* instance;
+    Debouncer rssiDebouncer;
 
     void wpsStart();
     void wpsStop();

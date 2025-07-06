@@ -1,7 +1,7 @@
 #include "LedControl.h"
 
 LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl)
-    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), lastUpdate(0), animationStep(0), direction(1) {}
+    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60) {}
 
 void LedControl::update() {
     DeviceState currentState = statusControl->getState();
@@ -55,10 +55,7 @@ void LedControl::showPowerOn() {
 }
 
 void LedControl::showWifiConnecting() {
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdate > 60) { // Controls the speed of the scanner
-        lastUpdate = currentTime;
-
+    if (animationDebouncer.hasElapsed()) { // Controls the speed of the scanner
         clear();
         
         // Draw the scanner head (brightest). HUE_BLUE is 160.

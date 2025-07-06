@@ -6,7 +6,7 @@
 WiFiControl* WiFiControl::instance = nullptr;
 
 WiFiControl::WiFiControl(Preferences* prefs):
-    preferences(prefs) {
+    preferences(prefs), rssiDebouncer(2000) {
     instance = this;
 }
 
@@ -114,11 +114,7 @@ void WiFiControl::handleWiFiEvent(WiFiEvent_t event, arduino_event_info_t info) 
 }
 
 void WiFiControl::displayWiFiSignalStrength() {
-    static unsigned long lastPrintTime = 0;
-    unsigned long currentTime = millis();
-
-    if (currentTime - lastPrintTime >= 2000) {
-        lastPrintTime = currentTime;
+    if (rssiDebouncer.hasElapsed()) {
         int rssi = WiFi.RSSI();
         Serial.printf("WiFi Control: RSSI: %d dBm\n", rssi);
     }
