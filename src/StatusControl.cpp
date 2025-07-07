@@ -17,9 +17,7 @@ const char* StatusControl::stateToString(DeviceState state) {
 }
 
 StatusControl::StatusControl() {
-    // Set initial state
-    currentState = POWER_ON;
-    Serial.println("StatusControl: state changed to " + String(stateToString(currentState)));
+    setState(POWER_ON);
 }
 
 void StatusControl::setState(DeviceState newState) {

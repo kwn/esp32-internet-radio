@@ -47,9 +47,9 @@ void LedControl::clear() {
 }
 
 void LedControl::showPowerOn() {
-    fill_solid(leds, numLeds, CRGB::White);
+    fill_solid(leds, numLeds, CRGB::Green);
     FastLED.show();
-    delay(100); // Brief flash
+    delay(500); // Brief flash
     clear();
     FastLED.show();
 }

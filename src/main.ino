@@ -76,7 +76,6 @@ void setup() {
     pinMode(PIN_ENCODER3_SW, INPUT);
 
     statusControl = new StatusControl();
-    statusControl->setState(POWER_ON);
 
     Serial.println("Main: Setting up audio...");
 
@@ -102,7 +101,6 @@ void setup() {
         NULL,             // Task handle
         1);               // Core ID
 
-    statusControl->setState(WIFI_CONNECTING);
     wifiControl->setupWiFi();
 }
 
