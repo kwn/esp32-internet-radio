@@ -12,8 +12,8 @@ const char* StationControl::stations[] = {
 
 StationControl* StationControl::instance = nullptr;
 
-StationControl::StationControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW):
-    audio(aud), preferences(prefs) {
+StationControl::StationControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs), statusControl(statCtrl) {
     instance = this;
 
     int initialStation = preferences->getInt("station", STATION_CONTROL_INITIAL_STATION);
@@ -35,17 +35,20 @@ void IRAM_ATTR StationControl::readEncoderISR() {
 void StationControl::handleStationChange() {
     if (encoder->encoderChanged()) {
         int station = encoder->readEncoder();
-
-        Serial.println("StationControl: Set station to " + String(stations[station]));
-
         preferences->putInt("station", station);
 
-        reconnect();
+        audio->stopSong();
+
+        Serial.println("StationControl: Set station to " + String(stations[station]));
     }
 }
 
 void StationControl::reconnect() {
     audio->connecttohost(stations[encoder->readEncoder()]);
+}
+
+int StationControl::getStationNumber() {
+    return encoder->readEncoder();
 }
 
 void StationControl::handleFactoryReset() {

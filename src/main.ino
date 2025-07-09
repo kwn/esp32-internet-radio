@@ -9,6 +9,8 @@
 #include "WiFiControl.h"
 #include "LedControl.h"
 #include "ToneControl.h"
+#include "StatusControl.h"
+#include "Debouncer.h"
 
 #define PIN_I2S_DOUT 12
 #define PIN_I2S_BCLK 13
@@ -36,8 +38,21 @@ CRGB leds[LED_NUMBER];
 VolumeControl *volumeControl;
 StationControl *stationControl;
 WiFiControl *wifiControl;
-// LedControl *ledControl;
+LedControl *ledControl;
 ToneControl *toneControl;
+StatusControl *statusControl;
+
+Debouncer wifiReconnectDebouncer(5000);
+Debouncer streamReconnectDebouncer(5000);
+
+void ledTask(void *pvParameters) {
+    for (;;) {
+        ledControl->update();
+        // Delay for a short period to allow other tasks to run.
+        // This effectively sets the animation's frame rate. 10ms = ~100 FPS.
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 
 void setup() {
     Serial.begin(9600);
@@ -60,6 +75,8 @@ void setup() {
     pinMode(PIN_ENCODER3_CLK, INPUT);
     pinMode(PIN_ENCODER3_SW, INPUT);
 
+    statusControl = new StatusControl();
+
     Serial.println("Main: Setting up audio...");
 
     audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
@@ -69,25 +86,26 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
-    // ledControl = new LedControl(PIN_LED_RED, PIN_LED_GREEN, PIN_LED_BLUE);
-    stationControl = new StationControl(&audio, &preferences, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
+    stationControl = new StationControl(&audio, &preferences, statusControl, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
+    ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
     wifiControl = new WiFiControl(&preferences);
     volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
-    // ledControl->setColour(COLOUR_RED);
+    xTaskCreatePinnedToCore(
+        ledTask,          // Task function
+        "LED Update Task",// Name of the task
+        2048,             // Stack size of task
+        NULL,             // Parameter of the task
+        1,                // Priority of the task
+        NULL,             // Task handle
+        1);               // Core ID
+
     wifiControl->setupWiFi();
 }
 
 void loop() {
     stationControl->handleFactoryReset();
-
-    for (int i = 0; i < LED_NUMBER; i++) {
-        leds[i] = CRGB::Blue;
-        FastLED.show();
-        delay(20);
-        leds[i] = CRGB::Black;
-    }
 
     if (wifiControl->isConnected()) {
         volumeControl->handleChange();
@@ -95,23 +113,25 @@ void loop() {
         toneControl->handleChange();
         toneControl->handleReset();
         stationControl->handleStationChange();
-        // wifiControl->displayWiFiSignalStrength();
 
         if (audio.isRunning()) {
+            statusControl->setState(PLAYING);
             audio.loop();
-            // ledControl->setColour(COLOUR_GREEN);
         } else {
-            Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
-            delay(1000);
-            stationControl->reconnect();
+            statusControl->setState(STREAM_BUFFERING);
+
+            if (streamReconnectDebouncer.hasElapsed()) {
+                Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
+                stationControl->reconnect();
+            }
         }
     } else {
-        Serial.println("Main: Wifi not connected...");
+        statusControl->setState(WIFI_CONNECTING);
 
-        // ledControl->setColour(COLOUR_BLUE);
-        delay(2000);
-
-        wifiControl->reconnect();
+        if (wifiReconnectDebouncer.hasElapsed()) {
+            Serial.println("Main: Wifi not connected...");
+            wifiControl->reconnect();
+        }
     }
 }
 

@@ -1,51 +1,130 @@
 #include "LedControl.h"
 
-Blink blinks[MAX_BLINKS];
+LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl)
+    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60) {}
 
-LedControl::LedControl(int redPin, int greenPin, int bluePin)
-  : pinRed(redPin), pinGreen(greenPin), pinBlue(bluePin) {}
+void LedControl::update() {
+    DeviceState currentState = statusControl->getState();
 
-void LedControl::setColour(const Colour &colour) {
-    if (currentColour != colour) {
-        analogWrite(pinRed, colour.red);
-        analogWrite(pinGreen, colour.green);
-        analogWrite(pinBlue, colour.blue);
+    switch (currentState) {
+        case POWER_ON:
+            showPowerOn();
+            break;
+        case WIFI_CONNECTING:
+            showWifiConnecting();
+            break;
+        case STREAM_BUFFERING:
+            showStreamBuffering();
+            break;
+        case PLAYING:
+            showPlaying();
+            break;
+        case MUTED:
+            showMuted();
+            break;
+        case STOPPED:
+            showStopped();
+            break;
+        case VOLUME_CHANGE:
+            // These are transient and handled differently, maybe via direct calls.
+            // For now, they can fall through or show a default state.
+            break;
+        case STATION_CHANGE:
+            // Handled as a transient effect.
+            break;
+        case FACTORY_RESET_COUNTDOWN:
+            // This would be triggered by StationControl, needs specific handling.
+            break;
+        default:
+            clear();
+            break;
+    }
+    FastLED.show();
+}
 
-        currentColour = colour;
+void LedControl::clear() {
+    fill_solid(leds, numLeds, CRGB::Black);
+}
+
+void LedControl::showPowerOn() {
+    fill_solid(leds, numLeds, CRGB::Green);
+}
+
+void LedControl::showWifiConnecting() {
+    if (animationDebouncer.hasElapsed()) { // Controls the speed of the scanner
+        clear();
+        
+        // Draw the scanner head (brightest). HUE_BLUE is 160.
+        leds[animationStep] = CHSV(160, 255, 255);
+
+        // Draw the gradient tail using a loop.
+        for (int i = 1; i <= 3; i++) {
+            int tailIndex = animationStep - (i * direction);
+            if (tailIndex >= 0 && tailIndex < numLeds) {
+                // Decrease brightness for each segment of the tail.
+                leds[tailIndex] = CHSV(160, 255, 255 - (i * 60));
+            }
+        }
+
+        // Check for boundaries and reverse direction *before* moving the scanner
+        if (animationStep >= numLeds - 1) {
+            direction = -1;
+        } else if (animationStep <= 0) {
+            direction = 1;
+        }
+
+        // Move the scanner head for the next frame
+        animationStep += direction;
     }
 }
 
-void LedControl::turnOff() {
-    setColour(COLOUT_OFF);
-}
+void LedControl::showStreamBuffering() {
+    int station = stationControl->getStationNumber();
+    int ledIndex = numLeds - 1 - station;
 
-void LedControl::blink(const Colour &colour, int times) {
-    for (int i = 0; i < times; i++) {
-        setColour(colour);
-        delay(200);
-        turnOff();
-        delay(200);
+    // Calculate "breathing" brightness using a sine wave for a smoother, more visible pulse.
+    // 60 BPM = 1 full sine wave cycle per second.
+    uint8_t brightness = beatsin8(60, 0, 255);
+
+    clear();
+
+    if (ledIndex >= 0 && ledIndex < numLeds) {
+        leds[ledIndex] = CHSV(30, 255, brightness);
     }
-    delay(2000);
-    setColour(currentColour);
 }
 
-// void addBlink(Blink blink) {
-//   if (blinkCount < MAX_BLINKS) {
-//     blinks[blinkCount++] = blink;
-//   }
-// }
+void LedControl::showPlaying() {
+    int station = stationControl->getStationNumber();
+    int ledIndex = numLeds - 1 - station;
 
-// void processNextBlink() {
-//   if (blinkCount > 0) {
-//     Blink currentBlink = blinks[0];
+    clear();
 
-//     for (int i = 0; i < blinkCount - 1; i++) {
-//       blinks[i] = blinks[i + 1];
-//     }
-//     blinkCount--;
+    if (ledIndex >= 0 && ledIndex < numLeds) {
+        leds[ledIndex] = CRGB::Orange;
+    }
+}
 
-//     blink(currentBlink);
-//   }
-// }
+void LedControl::showMuted() {
+    fill_solid(leds, numLeds, CRGB::Red);
+    FastLED.setBrightness(40);
+}
+
+void LedControl::showStopped() {
+    fill_solid(leds, numLeds, CRGB::DimGray);
+}
+
+// Note: Volume, Station, and Factory Reset require more complex integration
+// as they are triggered by user actions, not just a continuous state.
+// These are placeholders for now.
+void LedControl::showVolumeChange() {
+    // Example: To be called directly with a value
+}
+
+void LedControl::showStationChange() {
+    // Example: To be called directly with a value
+}
+
+void LedControl::showFactoryResetCountdown() {
+    // Example: To be called directly with a value
+}
 
