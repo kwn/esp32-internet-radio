@@ -48,10 +48,6 @@ void LedControl::clear() {
 
 void LedControl::showPowerOn() {
     fill_solid(leds, numLeds, CRGB::Green);
-    FastLED.show();
-    delay(500); // Brief flash
-    clear();
-    FastLED.show();
 }
 
 void LedControl::showWifiConnecting() {
@@ -83,7 +79,6 @@ void LedControl::showWifiConnecting() {
 }
 
 void LedControl::showStreamBuffering() {
-    // Get the station LED index (reversed).
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
 
@@ -91,20 +86,18 @@ void LedControl::showStreamBuffering() {
     // 60 BPM = 1 full sine wave cycle per second.
     uint8_t brightness = beatsin8(60, 0, 255);
 
-    // Clear the strip first.
     clear();
 
-    // Set the specific LED with the calculated brightness using HSV for better control.
     if (ledIndex >= 0 && ledIndex < numLeds) {
-        // HUE_ORANGE is ~30. We directly control the Value (brightness) from 0-255.
         leds[ledIndex] = CHSV(30, 255, brightness);
     }
 }
 
 void LedControl::showPlaying() {
-    clear();
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
+
+    clear();
 
     if (ledIndex >= 0 && ledIndex < numLeds) {
         leds[ledIndex] = CRGB::Orange;
