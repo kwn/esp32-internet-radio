@@ -37,20 +37,26 @@ void ToneControl::handleChange() {
 void ToneControl::updateTone(int tone) {
     preferences->putInt("tone", tone);
 
-    int low = 0;
-    int high = 0;
+    int lowOffset = 2;  // Default bass offset
+    int highOffset = 3; // Default treble offset
+
+    int lowAdj = 0;  // Adjustment from knob
+    int highAdj = 0; // Adjustment from knob
 
     if (tone < 0) {
-        low = abs(tone);
-        high = (int)(tone / 2);
+        lowAdj = abs(tone);
+        highAdj = (int)(tone / 2);
     } else if (tone > 0) {
-        low = -abs(tone / 2);
-        high = tone;
+        lowAdj = -abs(tone / 2);
+        highAdj = tone;
     }
 
-    audio->setTone(low, 0, high);
+    int finalLow = lowAdj + lowOffset;
+    int finalHigh = highAdj + highOffset;
 
-    Serial.printf("ToneControl: Bass: %d, Treble: %d\n", low, high);
+    audio->setTone(finalLow, 0, finalHigh);
+
+    Serial.printf("ToneControl: Bass: %d, Treble: %d\n", finalLow, finalHigh);
 }
 
 void ToneControl::handleReset() {
