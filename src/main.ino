@@ -49,8 +49,8 @@ void ledTask(void *pvParameters) {
     for (;;) {
         ledControl->update();
         // Delay for a short period to allow other tasks to run.
-        // This effectively sets the animation's frame rate. 10ms = ~100 FPS.
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        // This effectively sets the animation's frame rate. 17ms = ~58 FPS.
+        vTaskDelay(17 / portTICK_PERIOD_MS);
     }
 }
 

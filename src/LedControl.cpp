@@ -79,6 +79,8 @@ void LedControl::showWifiConnecting() {
 }
 
 void LedControl::showStreamBuffering() {
+    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
 
@@ -86,18 +88,16 @@ void LedControl::showStreamBuffering() {
     // 60 BPM = 1 full sine wave cycle per second.
     uint8_t brightness = beatsin8(60, 0, 255);
 
-    clear();
-
     if (ledIndex >= 0 && ledIndex < numLeds) {
         leds[ledIndex] = CHSV(30, 255, brightness);
     }
 }
 
 void LedControl::showPlaying() {
+    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+    
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
-
-    clear();
 
     if (ledIndex >= 0 && ledIndex < numLeds) {
         leds[ledIndex] = CRGB::Orange;
