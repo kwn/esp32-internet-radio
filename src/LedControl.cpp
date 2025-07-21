@@ -22,15 +22,9 @@ void LedControl::update() {
         case MUTED:
             showMuted();
             break;
-        case STOPPED:
-            showStopped();
-            break;
         case VOLUME_CHANGE:
             // These are transient and handled differently, maybe via direct calls.
             // For now, they can fall through or show a default state.
-            break;
-        case STATION_CHANGE:
-            // Handled as a transient effect.
             break;
         case FACTORY_RESET_COUNTDOWN:
             // This would be triggered by StationControl, needs specific handling.
@@ -132,18 +126,7 @@ void LedControl::showMuted() {
     FastLED.setBrightness(40);
 }
 
-void LedControl::showStopped() {
-    fill_solid(leds, numLeds, CRGB::DimGray);
-}
-
-// Note: Volume, Station, and Factory Reset require more complex integration
-// as they are triggered by user actions, not just a continuous state.
-// These are placeholders for now.
-void LedControl::showVolumeChange() {
-    // Example: To be called directly with a value
-}
-
-void LedControl::showStationChange() {
+void LedControl::showVolumeChange(int volume) {
     // Example: To be called directly with a value
 }
 

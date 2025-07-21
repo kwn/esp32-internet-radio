@@ -27,9 +27,7 @@ private:
     void showStreamBuffering();
     void showPlaying();
     void showMuted();
-    void showStopped();
-    void showVolumeChange();
-    void showStationChange();
+    void showVolumeChange(int volume);
     void showFactoryResetCountdown();
 
     void clear();

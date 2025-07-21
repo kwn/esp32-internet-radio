@@ -8,9 +8,7 @@ const char* StatusControl::stateToString(DeviceState state) {
         case STREAM_CONNECTION_FAILED: return "STREAM_CONNECTION_FAILED";
         case PLAYING: return "PLAYING";
         case MUTED: return "MUTED";
-        case STOPPED: return "STOPPED";
         case VOLUME_CHANGE: return "VOLUME_CHANGE";
-        case STATION_CHANGE: return "STATION_CHANGE";
         case FACTORY_RESET_COUNTDOWN: return "FACTORY_RESET_COUNTDOWN";
         default: return "UNKNOWN";
     }
