@@ -47,7 +47,30 @@ void LedControl::clear() {
 }
 
 void LedControl::showPowerOn() {
-    fill_solid(leds, numLeds, CRGB::Green);
+    const int tailLength = 3;
+    // Animate from off-screen-right to off-screen-left to ensure tail is fully visible at start and end
+    for (int i = numLeds + tailLength; i >= 0; i--) {
+        clear();
+
+        // Draw the bright head of the comet
+        if (i < numLeds) {
+            leds[i] = CRGB(20, 8, 0);
+        }
+
+        // Draw the fading tail
+        for (int j = 1; j <= tailLength; j++) {
+            int tailIndex = i + j;
+            if (tailIndex < numLeds) {
+                // Fade brightness with distance from head
+                leds[tailIndex] = CRGB(20, 8, 0);
+                leds[tailIndex].nscale8(255 - (j * (255 / (tailLength + 1))));
+            }
+        }
+
+        FastLED.show();
+        delay(30); // Adjust for desired speed
+    }
+    clear(); // Clear strip after animation
 }
 
 void LedControl::showWifiConnecting() {
