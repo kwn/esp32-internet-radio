@@ -26,9 +26,9 @@ void IRAM_ATTR ToneControl::readEncoderISR() {
 void ToneControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
-        ledControl->triggerToneOverlay(encoderValue);
 
         updateTone(encoderValue);
+        ledControl->triggerToneOverlay(encoderValue);
 
         Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
     }

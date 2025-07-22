@@ -41,7 +41,6 @@ private:
     void showPlaying();
     void showMuted();
     void showFactoryReset();
-    void showError();
 
     void clear();
 };

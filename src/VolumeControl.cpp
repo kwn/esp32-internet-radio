@@ -26,9 +26,9 @@ void IRAM_ATTR VolumeControl::readEncoderISR() {
 void VolumeControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
-        ledControl->triggerVolumeOverlay(getVolume());
 
         updateVolume(encoderValue);
+        ledControl->triggerVolumeOverlay(getVolume());
 
         Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
     }

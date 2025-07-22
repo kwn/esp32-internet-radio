@@ -6,7 +6,6 @@ const char* StatusControl::stateToString(PrimaryState state) {
         case STATE_WIFI_CONNECTING: return "WIFI_CONNECTING";
         case STATE_STREAM_BUFFERING: return "STREAM_BUFFERING";
         case STATE_PLAYING: return "PLAYING";
-        case STATE_ERROR: return "ERROR";
         default: return "UNKNOWN";
     }
 }
@@ -52,4 +51,4 @@ void StatusControl::setFactoryReset(bool isResetting) {
 
 bool StatusControl::isFactoryResetting() {
     return factoryResetting;
-} 
+}

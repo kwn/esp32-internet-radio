@@ -8,8 +8,7 @@ enum PrimaryState {
     STATE_POWERING_ON,
     STATE_WIFI_CONNECTING,
     STATE_STREAM_BUFFERING,
-    STATE_PLAYING,
-    STATE_ERROR
+    STATE_PLAYING
 };
 
 class StatusControl {
@@ -35,4 +34,4 @@ private:
     const char* stateToString(PrimaryState state);
 };
 
-#endif // STATUSCONTROL_H 
+#endif // STATUSCONTROL_H

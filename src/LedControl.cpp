@@ -49,9 +49,6 @@ void LedControl::displayPrimaryState() {
         case STATE_PLAYING:
             showPlaying();
             break;
-        case STATE_ERROR:
-            showError();
-            break;
     }
 }
 
@@ -158,14 +155,5 @@ void LedControl::showMuted() {
 void LedControl::showFactoryReset() {
     uint8_t brightness = beatsin8(120, 50, 255);
     fill_solid(leds, numLeds, CRGB(brightness, 0, 0));
-}
-
-void LedControl::showError() {
-    // Blinking red for error
-    if (animationDebouncer.hasElapsed()) {
-        static bool on = false;
-        on = !on;
-        fill_solid(leds, numLeds, on ? CRGB::Red : CRGB::Black);
-    }
 }
 
