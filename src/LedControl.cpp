@@ -4,32 +4,27 @@ LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, St
     : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60), overlayTimeout(0), activeOverlay(OVERLAY_NONE), overlayValue(0) {}
 
 void LedControl::update() {
-    // Highest priority: Mute status
-    if (statusControl->isMuted()) {
+    if (statusControl->isMuted()) { // Highest priority: Mute status
         showMuted();
-    }
-    // Second priority: Overlays
-    else if (millis() < overlayTimeout) {
+    } else if (millis() < overlayTimeout) { // Second priority: Overlays
         displayOverlay();
-    }
-    // Third priority: Factory reset
-    else if (statusControl->isFactoryResetting()) {
+    } else if (statusControl->isFactoryResetting()) { // Third priority: Factory reset
         showFactoryReset();
-    }
-    // Default: Primary state display
-    else {
+    } else { // Default: Primary state display
         if (activeOverlay != OVERLAY_NONE) {
             activeOverlay = OVERLAY_NONE;
         }
+
         displayPrimaryState();
-    } 
+    }
+
     FastLED.show();
 }
 
 void LedControl::triggerVolumeOverlay(int volume) {
     activeOverlay = OVERLAY_VOLUME;
     overlayValue = volume;
-    overlayTimeout = millis() + 2000; // Overlay for 2 seconds
+    overlayTimeout = millis() + 2000;
 }
 
 void LedControl::triggerToneOverlay(int tone) {
@@ -62,10 +57,10 @@ void LedControl::displayPrimaryState() {
 
 void LedControl::displayOverlay() {
     clear();
+
     switch (activeOverlay) {
         case OVERLAY_VOLUME: {
             int ledsToShow = overlayValue;
-            // Fill from the 'bottom' up (which is top-down since it's reversed)
             for (int i = 0; i < ledsToShow; i++) {
                 leds[numLeds - 1 - i] = CRGB::Cyan;
             }
@@ -75,7 +70,6 @@ void LedControl::displayOverlay() {
             int centerLed = numLeds / 2;
             int toneValue = overlayValue;
 
-            // Always light the center LED as a reference point
             leds[centerLed] = CRGB::White;
 
             if (toneValue > 0) { // Treble to the left (Orange) - physically right
@@ -95,7 +89,7 @@ void LedControl::displayOverlay() {
         }
         case OVERLAY_NONE:
         default:
-            break; // Do nothing
+            break;
     }
 }
 
@@ -162,8 +156,7 @@ void LedControl::showMuted() {
 }
 
 void LedControl::showFactoryReset() {
-    // Simple pulsing red for factory reset
-    uint8_t brightness = beatsin8(120, 50, 255); // Pulse twice per second
+    uint8_t brightness = beatsin8(120, 50, 255);
     fill_solid(leds, numLeds, CRGB(brightness, 0, 0));
 }
 
