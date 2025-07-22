@@ -32,6 +32,12 @@ void LedControl::triggerVolumeOverlay(int volume) {
     overlayTimeout = millis() + 2000; // Overlay for 2 seconds
 }
 
+void LedControl::triggerToneOverlay(int tone) {
+    activeOverlay = OVERLAY_TONE;
+    overlayValue = tone;
+    overlayTimeout = millis() + 2000;
+}
+
 void LedControl::displayPrimaryState() {
     PrimaryState currentState = statusControl->getPrimaryState();
 
@@ -62,6 +68,28 @@ void LedControl::displayOverlay() {
             // Fill from the 'bottom' up (which is top-down since it's reversed)
             for (int i = 0; i < ledsToShow; i++) {
                 leds[numLeds - 1 - i] = CRGB::Cyan;
+            }
+            break;
+        }
+        case OVERLAY_TONE: {
+            int centerLed = numLeds / 2;
+            int toneValue = overlayValue;
+
+            // Always light the center LED as a reference point
+            leds[centerLed] = CRGB::White;
+
+            if (toneValue > 0) { // Treble to the left (Orange) - physically right
+                int ledsToLight = map(toneValue, 1, 5, 1, centerLed);
+                for(int i = 1; i <= ledsToLight; i++) {
+                    leds[centerLed - i].setHue(HUE_ORANGE);
+                    leds[centerLed - i].nscale8(255 - (i * (255 / (ledsToLight + 1))));
+                }
+            } else if (toneValue < 0) { // Bass to the right (Blue) - physically left
+                int ledsToLight = map(abs(toneValue), 1, 5, 1, numLeds - 1 - centerLed);
+                for(int i = 1; i <= ledsToLight; i++) {
+                    leds[centerLed + i].setHue(HUE_BLUE);
+                    leds[centerLed + i].nscale8(255 - (i * (255 / (ledsToLight + 1))));
+                }
             }
             break;
         }

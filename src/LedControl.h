@@ -9,7 +9,8 @@
 
 enum OverlayType {
     OVERLAY_NONE,
-    OVERLAY_VOLUME
+    OVERLAY_VOLUME,
+    OVERLAY_TONE
 };
 
 class LedControl {
@@ -17,6 +18,7 @@ public:
     LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl);
     void update();
     void triggerVolumeOverlay(int volume);
+    void triggerToneOverlay(int tone);
 
 private:
     CRGB* leds;

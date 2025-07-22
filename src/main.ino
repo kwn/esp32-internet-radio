@@ -83,10 +83,10 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
-    // Order is important: LedControl must exist before being passed to VolumeControl
+    // Order is important: LedControl must exist before being passed to others
     stationControl = new StationControl(&audio, &preferences, statusControl, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
-    toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
     ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
+    toneControl = new ToneControl(&audio, &preferences, ledControl, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
     volumeControl = new VolumeControl(&audio, &preferences, statusControl, ledControl, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     wifiControl = new WiFiControl(&preferences);
 
