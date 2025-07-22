@@ -11,6 +11,7 @@ class LedControl {
 public:
     LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl);
     void update();
+    void triggerOverlay(); // Keep overlay trigger
 
 private:
     CRGB* leds;
@@ -20,15 +21,18 @@ private:
     int animationStep;
     int direction;
     Debouncer animationDebouncer;
+    unsigned long overlayTimeout;
 
     // Effect methods
+    void displayPrimaryState();
+    void displayOverlay();
     void showPowerOn();
     void showWifiConnecting();
     void showStreamBuffering();
     void showPlaying();
     void showMuted();
-    void showVolumeChange(int volume);
-    void showFactoryResetCountdown();
+    void showFactoryReset();
+    void showError();
 
     void clear();
 };

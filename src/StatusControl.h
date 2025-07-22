@@ -3,26 +3,36 @@
 
 #include <Arduino.h>
 
-enum DeviceState {
-    POWER_ON,
-    WIFI_CONNECTING,
-    STREAM_BUFFERING,
-    STREAM_CONNECTION_FAILED,
-    PLAYING,
-    MUTED,
-    VOLUME_CHANGE,
-    FACTORY_RESET_COUNTDOWN
+// Enum for primary, mutually exclusive states
+enum PrimaryState {
+    STATE_POWERING_ON,
+    STATE_WIFI_CONNECTING,
+    STATE_STREAM_BUFFERING,
+    STATE_PLAYING,
+    STATE_ERROR
 };
 
 class StatusControl {
 public:
     StatusControl();
-    void setState(DeviceState newState);
-    DeviceState getState();
+
+    // --- Primary State ---
+    void setPrimaryState(PrimaryState newState);
+    PrimaryState getPrimaryState();
+
+    // --- Status Flags ---
+    void setMuted(bool muted);
+    bool isMuted();
+
+    void setFactoryReset(bool resetting);
+    bool isFactoryResetting();
 
 private:
-    DeviceState currentState;
-    const char* stateToString(DeviceState state);
+    PrimaryState currentState;
+    bool muted;
+    bool factoryResetting;
+
+    const char* stateToString(PrimaryState state);
 };
 
 #endif // STATUSCONTROL_H 

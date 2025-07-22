@@ -4,6 +4,7 @@
 #include <Audio.h>
 #include <AiEsp32RotaryEncoder.h>
 #include <Preferences.h>
+#include "StatusControl.h" // Include StatusControl
 
 #define VOLUME_CONTROL_MIN_BOUNDRY 0
 #define VOLUME_CONTROL_MAX_BOUNDRY 21
@@ -15,15 +16,16 @@ private:
     AiEsp32RotaryEncoder* encoder;
     Audio* audio;
     Preferences* preferences;
+    StatusControl* statusControl; // Add StatusControl pointer
     static VolumeControl* instance;
-    bool isMuted;
     int muteVolume;
 
     static void IRAM_ATTR readEncoderISR();
     void updateVolume(int volume);
 
 public:
-    VolumeControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW);
+    // Update constructor signature
+    VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, int pinCLK, int pinDT, int pinSW);
     void handleChange();
     void handleMute();
 };
