@@ -1,23 +1,34 @@
 #include "LedControl.h"
 
 LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl)
-    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60), overlayTimeout(0) {}
+    : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60), overlayTimeout(0), activeOverlay(OVERLAY_NONE), overlayValue(0) {}
 
 void LedControl::update() {
-    if (millis() < overlayTimeout) {
-        displayOverlay();
-    } else if (statusControl->isMuted()) {
+    // Highest priority: Mute status
+    if (statusControl->isMuted()) {
         showMuted();
-    } else if (statusControl->isFactoryResetting()) {
+    }
+    // Second priority: Overlays
+    else if (millis() < overlayTimeout) {
+        displayOverlay();
+    }
+    // Third priority: Factory reset
+    else if (statusControl->isFactoryResetting()) {
         showFactoryReset();
     }
+    // Default: Primary state display
     else {
+        if (activeOverlay != OVERLAY_NONE) {
+            activeOverlay = OVERLAY_NONE;
+        }
         displayPrimaryState();
     }
     FastLED.show();
 }
 
-void LedControl::triggerOverlay() {
+void LedControl::triggerVolumeOverlay(int volume) {
+    activeOverlay = OVERLAY_VOLUME;
+    overlayValue = volume;
     overlayTimeout = millis() + 2000; // Overlay for 2 seconds
 }
 
@@ -44,8 +55,20 @@ void LedControl::displayPrimaryState() {
 }
 
 void LedControl::displayOverlay() {
-    // Volume overlay: all green
-    fill_solid(leds, numLeds, CRGB::Green);
+    clear();
+    switch (activeOverlay) {
+        case OVERLAY_VOLUME: {
+            int ledsToShow = overlayValue;
+            // Fill from the 'bottom' up (which is top-down since it's reversed)
+            for (int i = 0; i < ledsToShow; i++) {
+                leds[numLeds - 1 - i] = CRGB::Cyan;
+            }
+            break;
+        }
+        case OVERLAY_NONE:
+        default:
+            break; // Do nothing
+    }
 }
 
 void LedControl::clear() {

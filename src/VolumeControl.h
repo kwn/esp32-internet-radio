@@ -8,7 +8,7 @@
 #include "LedControl.h" // Include LedControl
 
 #define VOLUME_CONTROL_MIN_BOUNDRY 0
-#define VOLUME_CONTROL_MAX_BOUNDRY 21
+#define VOLUME_CONTROL_MAX_BOUNDRY 11
 #define VOLUME_CONTROL_INITIAL_VOLUME 5
 #define ROTARY_ENCODER_STEPS 4
 
@@ -30,6 +30,7 @@ public:
     VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW);
     void handleChange();
     void handleMute();
+    int getVolume();
 };
 
 #endif

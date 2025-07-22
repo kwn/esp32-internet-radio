@@ -30,7 +30,7 @@ void VolumeControl::handleChange() {
         int encoderValue = encoder->readEncoder();
         Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
         updateVolume(encoderValue);
-        ledControl->triggerOverlay(); // Trigger the overlay
+        ledControl->triggerVolumeOverlay(getVolume()); // Trigger the overlay with volume
     }
 }
 
@@ -57,4 +57,8 @@ void VolumeControl::handleMute() {
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }
+}
+
+int VolumeControl::getVolume() {
+    return muteVolume;
 }

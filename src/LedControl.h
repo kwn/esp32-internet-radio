@@ -7,11 +7,16 @@
 #include "StationControl.h"
 #include "Debouncer.h"
 
+enum OverlayType {
+    OVERLAY_NONE,
+    OVERLAY_VOLUME
+};
+
 class LedControl {
 public:
     LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl);
     void update();
-    void triggerOverlay(); // Keep overlay trigger
+    void triggerVolumeOverlay(int volume);
 
 private:
     CRGB* leds;
@@ -22,6 +27,8 @@ private:
     int direction;
     Debouncer animationDebouncer;
     unsigned long overlayTimeout;
+    OverlayType activeOverlay;
+    int overlayValue;
 
     // Effect methods
     void displayPrimaryState();
