@@ -65,6 +65,7 @@ void ToneControl::handleReset() {
         buttonPressed = true;
         encoder->setEncoderValue(0);
         updateTone(0);
+        ledControl->triggerToneOverlay(0); // Trigger overlay on reset
 
         Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {

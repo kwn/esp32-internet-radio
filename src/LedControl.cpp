@@ -22,7 +22,7 @@ void LedControl::update() {
             activeOverlay = OVERLAY_NONE;
         }
         displayPrimaryState();
-    }
+    } 
     FastLED.show();
 }
 
