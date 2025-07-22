@@ -44,11 +44,8 @@ void LedControl::displayPrimaryState() {
 }
 
 void LedControl::displayOverlay() {
-    // For now, simple placeholder. We can restore detailed overlays later.
-    clear();
-    leds[0] = CRGB::Green;
-    leds[1] = CRGB::Green;
-    leds[2] = CRGB::Green;
+    // Volume overlay: all green
+    fill_solid(leds, numLeds, CRGB::Green);
 }
 
 void LedControl::clear() {

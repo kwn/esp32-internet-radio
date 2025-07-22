@@ -2,9 +2,9 @@
 
 VolumeControl* VolumeControl::instance = nullptr;
 
-// Update constructor to accept StatusControl
-VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, int pinCLK, int pinDT, int pinSW):
-    audio(aud), preferences(prefs), statusControl(statCtrl) {
+// Update constructor to accept StatusControl and LedControl
+VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs), statusControl(statCtrl), ledControl(ledCtrl) {
     instance = this;
 
     int initialVolume = preferences->getInt("volume", VOLUME_CONTROL_INITIAL_VOLUME);
@@ -30,6 +30,7 @@ void VolumeControl::handleChange() {
         int encoderValue = encoder->readEncoder();
         Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
         updateVolume(encoderValue);
+        ledControl->triggerOverlay(); // Trigger the overlay
     }
 }
 
