@@ -2,7 +2,6 @@
 
 VolumeControl* VolumeControl::instance = nullptr;
 
-// Update constructor to accept StatusControl and LedControl
 VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
     audio(aud), preferences(prefs), statusControl(statCtrl), ledControl(ledCtrl) {
     instance = this;
@@ -25,21 +24,23 @@ void IRAM_ATTR VolumeControl::readEncoderISR() {
 }
 
 void VolumeControl::handleChange() {
-    // No longer check isMuted here, handle volume changes regardless.
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
-        Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
+        ledControl->triggerVolumeOverlay(getVolume());
+
         updateVolume(encoderValue);
-        ledControl->triggerVolumeOverlay(getVolume()); // Trigger the overlay with volume
+
+        Serial.printf("VolumeControl: Volume changed: %d\n", encoderValue);
     }
 }
 
 void VolumeControl::updateVolume(int volume) {
     preferences->putInt("volume", volume);
-    // Only update hardware volume if not muted
+
     if (!statusControl->isMuted()) {
         audio->setVolume(volume);
     }
+
     muteVolume = volume;
     Serial.printf("VolumeControl: Volume set to: %d\n", volume);
 }

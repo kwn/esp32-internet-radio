@@ -2,7 +2,6 @@
 
 ToneControl* ToneControl::instance = nullptr;
 
-// Update constructor to accept LedControl
 ToneControl::ToneControl(Audio* aud, Preferences* prefs, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
     audio(aud), preferences(prefs), ledControl(ledCtrl) {
     instance = this;
@@ -27,9 +26,11 @@ void IRAM_ATTR ToneControl::readEncoderISR() {
 void ToneControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
-        Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
+        ledControl->triggerToneOverlay(encoderValue);
+
         updateTone(encoderValue);
-        ledControl->triggerToneOverlay(encoderValue); // Trigger tone overlay
+
+        Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
     }
 }
 
@@ -64,8 +65,9 @@ void ToneControl::handleReset() {
     if (encoder->isEncoderButtonDown() && !buttonPressed) {
         buttonPressed = true;
         encoder->setEncoderValue(0);
+        ledControl->triggerToneOverlay(0);
+
         updateTone(0);
-        ledControl->triggerToneOverlay(0); // Trigger overlay on reset
 
         Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {
