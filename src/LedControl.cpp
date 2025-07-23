@@ -37,9 +37,6 @@ void LedControl::displayPrimaryState() {
     PrimaryState currentState = statusControl->getPrimaryState();
 
     switch (currentState) {
-        case STATE_POWERING_ON:
-            showPowerOn();
-            break;
         case STATE_WIFI_CONNECTING:
             showWifiConnecting();
             break;
@@ -92,25 +89,6 @@ void LedControl::displayOverlay() {
 
 void LedControl::clear() {
     fill_solid(leds, numLeds, CRGB::Black);
-}
-
-void LedControl::showPowerOn() {
-    // Quick wipe animation...
-    const int tailLength = 3;
-    for (int i = numLeds + tailLength; i >= 0; i--) {
-        clear();
-        if (i < numLeds) { leds[i] = CRGB(20, 8, 0); }
-        for (int j = 1; j <= tailLength; j++) {
-            int tailIndex = i + j;
-            if (tailIndex < numLeds) {
-                leds[tailIndex] = CRGB(20, 8, 0);
-                leds[tailIndex].nscale8(255 - (j * (255 / (tailLength + 1))));
-            }
-        }
-        FastLED.show();
-        delay(30);
-    }
-    clear();
 }
 
 void LedControl::showWifiConnecting() {

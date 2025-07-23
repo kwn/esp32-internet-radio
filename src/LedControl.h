@@ -35,7 +35,6 @@ private:
     // Effect methods
     void displayPrimaryState();
     void displayOverlay();
-    void showPowerOn();
     void showWifiConnecting();
     void showStreamBuffering();
     void showPlaying();

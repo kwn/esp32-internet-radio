@@ -5,7 +5,6 @@
 
 // Enum for primary, mutually exclusive states
 enum PrimaryState {
-    STATE_POWERING_ON,
     STATE_WIFI_CONNECTING,
     STATE_STREAM_BUFFERING,
     STATE_PLAYING

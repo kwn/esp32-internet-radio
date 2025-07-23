@@ -2,7 +2,6 @@
 
 const char* StatusControl::stateToString(PrimaryState state) {
     switch (state) {
-        case STATE_POWERING_ON: return "POWERING_ON";
         case STATE_WIFI_CONNECTING: return "WIFI_CONNECTING";
         case STATE_STREAM_BUFFERING: return "STREAM_BUFFERING";
         case STATE_PLAYING: return "PLAYING";
@@ -11,7 +10,7 @@ const char* StatusControl::stateToString(PrimaryState state) {
 }
 
 StatusControl::StatusControl():
-    currentState(STATE_POWERING_ON), muted(false), factoryResetting(false) {
+    currentState(STATE_WIFI_CONNECTING), muted(false), factoryResetting(false) {
 }
 
 // --- Primary State ---

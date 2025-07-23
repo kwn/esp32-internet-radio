@@ -59,9 +59,6 @@ void setup() {
     esp_bt_controller_disable();
     preferences.begin("radio");
 
-    statusControl = new StatusControl();
-    statusControl->setPrimaryState(STATE_POWERING_ON);
-
     pinMode(PIN_LED_DATA, OUTPUT);
     pinMode(PIN_I2S_BCLK, OUTPUT);
     pinMode(PIN_I2S_DOUT, OUTPUT);
@@ -83,6 +80,7 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
+    statusControl = new StatusControl();
     stationControl = new StationControl(&audio, &preferences, statusControl, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
     toneControl = new ToneControl(&audio, &preferences, ledControl, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
@@ -91,7 +89,6 @@ void setup() {
 
     xTaskCreatePinnedToCore(ledTask, "LED Update Task", 2048, NULL, 1, NULL, 1);
 
-    statusControl->setPrimaryState(STATE_WIFI_CONNECTING);
     wifiControl->setupWiFi();
 }
 
