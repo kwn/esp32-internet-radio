@@ -42,12 +42,11 @@ void ToneControl::updateTone(int tone) {
     int lowAdj = 0;
     int highAdj = 0;
 
-    // Symmetrical adjustment: for every point of tone, adjust bass/treble by a half point.
-    if (tone < 0) { // More bass
+    if (tone < 0) {
         lowAdj = abs(tone);
-        highAdj = (int)(tone * 0.5); // Reduce treble
-    } else if (tone > 0) { // More treble
-        lowAdj = (int)(-tone * 0.5); // Reduce bass
+        highAdj = -abs(tone);
+    } else if (tone > 0) {
+        lowAdj = -abs(tone);
         highAdj = tone;
     }
 
