@@ -61,23 +61,17 @@ void LedControl::displayOverlay() {
             break;
         }
         case OVERLAY_TONE: {
-            int centerLed = numLeds / 2;
             int toneValue = overlayValue;
 
-            leds[centerLed] = CRGB::White;
+            const CRGB bassColor = CRGB::Red;
+            const CRGB trebleColor = CRGB::Yellow;
 
-            if (toneValue > 0) { // Treble to the left (Orange) - physically right
-                int ledsToLight = map(toneValue, 1, 5, 1, centerLed);
-                for(int i = 1; i <= ledsToLight; i++) {
-                    leds[centerLed - i].setHue(HUE_ORANGE);
-                    leds[centerLed - i].nscale8(255 - (i * (255 / (ledsToLight + 1))));
-                }
-            } else if (toneValue < 0) { // Bass to the right (Blue) - physically left
-                int ledsToLight = map(abs(toneValue), 1, 5, 1, numLeds - 1 - centerLed);
-                for(int i = 1; i <= ledsToLight; i++) {
-                    leds[centerLed + i].setHue(HUE_BLUE);
-                    leds[centerLed + i].nscale8(255 - (i * (255 / (ledsToLight + 1))));
-                }
+            int centerIndex = map(toneValue, -5, 5, numLeds - 1, 0);
+
+            fl::fill_gradient_RGB(leds, numLeds, trebleColor, bassColor);
+
+            if (centerIndex >= 0 && centerIndex < numLeds) {
+                leds[centerIndex] = CRGB::White;
             }
             break;
         }
