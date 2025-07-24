@@ -2,12 +2,11 @@
 
 ToneControl* ToneControl::instance = nullptr;
 
-ToneControl::ToneControl(Audio* aud, Preferences* prefs, int pinCLK, int pinDT, int pinSW):
-    audio(aud), preferences(prefs) {
+ToneControl::ToneControl(Audio* aud, Preferences* prefs, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
+    audio(aud), preferences(prefs), ledControl(ledCtrl) {
     instance = this;
 
     int initialTone = preferences->getInt("tone", TONE_CONTROL_INITIAL_TONE);
-
     updateTone(initialTone);
 
     encoder = new AiEsp32RotaryEncoder(pinCLK, pinDT, pinSW, -1, ROTARY_ENCODER_STEPS);
@@ -28,26 +27,26 @@ void ToneControl::handleChange() {
     if (encoder->encoderChanged()) {
         int encoderValue = encoder->readEncoder();
 
-        Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
-
         updateTone(encoderValue);
+        ledControl->triggerToneOverlay(encoderValue);
+
+        Serial.printf("ToneControl: Tone changed: %d\n", encoderValue);
     }
 }
 
 void ToneControl::updateTone(int tone) {
     preferences->putInt("tone", tone);
 
-    int lowOffset = 2;  // Default bass offset
-    int highOffset = 3; // Default treble offset
-
-    int lowAdj = 0;  // Adjustment from knob
-    int highAdj = 0; // Adjustment from knob
+    int lowOffset = 2;
+    int highOffset = 3;
+    int lowAdj = 0;
+    int highAdj = 0;
 
     if (tone < 0) {
         lowAdj = abs(tone);
-        highAdj = (int)(tone / 2);
+        highAdj = -abs(tone);
     } else if (tone > 0) {
-        lowAdj = -abs(tone / 2);
+        lowAdj = -abs(tone);
         highAdj = tone;
     }
 
@@ -65,10 +64,16 @@ void ToneControl::handleReset() {
     if (encoder->isEncoderButtonDown() && !buttonPressed) {
         buttonPressed = true;
         encoder->setEncoderValue(0);
+        ledControl->triggerToneOverlay(0);
+
         updateTone(0);
 
         Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
     }
+}
+
+int ToneControl::getTone() {
+    return encoder->readEncoder();
 }

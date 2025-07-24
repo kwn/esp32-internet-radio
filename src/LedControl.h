@@ -7,10 +7,18 @@
 #include "StationControl.h"
 #include "Debouncer.h"
 
+enum OverlayType {
+    OVERLAY_NONE,
+    OVERLAY_VOLUME,
+    OVERLAY_TONE
+};
+
 class LedControl {
 public:
     LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl);
     void update();
+    void triggerVolumeOverlay(int volume);
+    void triggerToneOverlay(int tone);
 
 private:
     CRGB* leds;
@@ -20,15 +28,18 @@ private:
     int animationStep;
     int direction;
     Debouncer animationDebouncer;
+    unsigned long overlayTimeout;
+    OverlayType activeOverlay;
+    int overlayValue;
 
     // Effect methods
-    void showPowerOn();
+    void displayPrimaryState();
+    void displayOverlay();
     void showWifiConnecting();
     void showStreamBuffering();
     void showPlaying();
     void showMuted();
-    void showVolumeChange(int volume);
-    void showFactoryResetCountdown();
+    void showFactoryReset();
 
     void clear();
 };

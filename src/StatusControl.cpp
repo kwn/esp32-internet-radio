@@ -1,30 +1,53 @@
 #include "StatusControl.h"
 
-const char* StatusControl::stateToString(DeviceState state) {
+const char* StatusControl::stateToString(PrimaryState state) {
     switch (state) {
-        case POWER_ON: return "POWER_ON";
-        case WIFI_CONNECTING: return "WIFI_CONNECTING";
-        case STREAM_BUFFERING: return "STREAM_BUFFERING";
-        case STREAM_CONNECTION_FAILED: return "STREAM_CONNECTION_FAILED";
-        case PLAYING: return "PLAYING";
-        case MUTED: return "MUTED";
-        case VOLUME_CHANGE: return "VOLUME_CHANGE";
-        case FACTORY_RESET_COUNTDOWN: return "FACTORY_RESET_COUNTDOWN";
+        case STATE_WIFI_CONNECTING: return "WIFI_CONNECTING";
+        case STATE_STREAM_BUFFERING: return "STREAM_BUFFERING";
+        case STATE_PLAYING: return "PLAYING";
         default: return "UNKNOWN";
     }
 }
 
-StatusControl::StatusControl() {
-    setState(POWER_ON);
+StatusControl::StatusControl():
+    currentState(STATE_WIFI_CONNECTING), muted(false), factoryResetting(false) {
 }
 
-void StatusControl::setState(DeviceState newState) {
+// --- Primary State ---
+void StatusControl::setPrimaryState(PrimaryState newState) {
     if (currentState != newState) {
         currentState = newState;
         Serial.println("StatusControl: state changed to " + String(stateToString(currentState)));
     }
 }
 
-DeviceState StatusControl::getState() {
+PrimaryState StatusControl::getPrimaryState() {
     return currentState;
-} 
+}
+
+// --- Status Flags ---
+void StatusControl::setMuted(bool isMuted) {
+    if (muted != isMuted) {
+        muted = isMuted;
+        Serial.println(muted ? "StatusControl: Muted" : "StatusControl: Unmuted");
+    }
+}
+
+bool StatusControl::isMuted() {
+    return muted;
+}
+
+void StatusControl::setFactoryReset(bool isResetting) {
+    if (factoryResetting != isResetting) {
+        factoryResetting = isResetting;
+        if (factoryResetting) {
+            Serial.println("StatusControl: Factory reset countdown started");
+        } else {
+            Serial.println("StatusControl: Factory reset cancelled");
+        }
+    }
+}
+
+bool StatusControl::isFactoryResetting() {
+    return factoryResetting;
+}

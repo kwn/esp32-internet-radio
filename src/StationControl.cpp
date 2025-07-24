@@ -54,13 +54,11 @@ int StationControl::getStationNumber() {
 void StationControl::handleFactoryReset() {
     static unsigned long buttonPressStart = 0;
     static int lastCountdown = -1;
-    static bool countingDown = false;
 
     if (encoder->isEncoderButtonDown()) {
-        if (!countingDown) {
+        if (!statusControl->isFactoryResetting()) {
             buttonPressStart = millis();
-            countingDown = true;
-            Serial.println("StationControl: Factory reset countdown started...");
+            statusControl->setFactoryReset(true);
         }
 
         unsigned long elapsed = millis() - buttonPressStart;
@@ -77,10 +75,9 @@ void StationControl::handleFactoryReset() {
             ESP.restart();
         }
     } else {
-        if (countingDown) {
-            Serial.println("StationControl: Reset cancelled");
+        if (statusControl->isFactoryResetting()) {
+            statusControl->setFactoryReset(false);
         }
-        countingDown = false;
         lastCountdown = -1;
     }
 }

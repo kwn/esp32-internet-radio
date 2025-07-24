@@ -48,8 +48,6 @@ Debouncer streamReconnectDebouncer(5000);
 void ledTask(void *pvParameters) {
     for (;;) {
         ledControl->update();
-        // Delay for a short period to allow other tasks to run.
-        // This effectively sets the animation's frame rate. 17ms = ~58 FPS.
         vTaskDelay(17 / portTICK_PERIOD_MS);
     }
 }
@@ -75,10 +73,6 @@ void setup() {
     pinMode(PIN_ENCODER3_CLK, INPUT);
     pinMode(PIN_ENCODER3_SW, INPUT);
 
-    statusControl = new StatusControl();
-
-    Serial.println("Main: Setting up audio...");
-
     audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
     audio.setBufsize(24 * 1024, -1);
     audio.forceMono(true);
@@ -86,20 +80,14 @@ void setup() {
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);
 
+    statusControl = new StatusControl();
     stationControl = new StationControl(&audio, &preferences, statusControl, PIN_ENCODER1_CLK, PIN_ENCODER1_DT, PIN_ENCODER1_SW);
     ledControl = new LedControl(leds, LED_NUMBER, statusControl, stationControl);
+    toneControl = new ToneControl(&audio, &preferences, ledControl, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
+    volumeControl = new VolumeControl(&audio, &preferences, statusControl, ledControl, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
     wifiControl = new WiFiControl(&preferences);
-    volumeControl = new VolumeControl(&audio, &preferences, PIN_ENCODER3_CLK, PIN_ENCODER3_DT, PIN_ENCODER3_SW);
-    toneControl = new ToneControl(&audio, &preferences, PIN_ENCODER2_CLK, PIN_ENCODER2_DT, PIN_ENCODER2_SW);
 
-    xTaskCreatePinnedToCore(
-        ledTask,          // Task function
-        "LED Update Task",// Name of the task
-        2048,             // Stack size of task
-        NULL,             // Parameter of the task
-        1,                // Priority of the task
-        NULL,             // Task handle
-        1);               // Core ID
+    xTaskCreatePinnedToCore(ledTask, "LED Update Task", 2048, NULL, 1, NULL, 1);
 
     wifiControl->setupWiFi();
 }
@@ -115,19 +103,17 @@ void loop() {
         stationControl->handleStationChange();
 
         if (audio.isRunning()) {
-            statusControl->setState(PLAYING);
+            statusControl->setPrimaryState(STATE_PLAYING);
             audio.loop();
         } else {
-            statusControl->setState(STREAM_BUFFERING);
-
+            statusControl->setPrimaryState(STATE_STREAM_BUFFERING);
             if (streamReconnectDebouncer.hasElapsed()) {
                 Serial.println("Main: Audio stopped or failed, attempting to reconnect...");
                 stationControl->reconnect();
             }
         }
     } else {
-        statusControl->setState(WIFI_CONNECTING);
-
+        statusControl->setPrimaryState(STATE_WIFI_CONNECTING);
         if (wifiReconnectDebouncer.hasElapsed()) {
             Serial.println("Main: Wifi not connected...");
             wifiControl->reconnect();
@@ -136,16 +122,13 @@ void loop() {
 }
 
 void audio_info(const char *info) {
-    // Serial.println("O GURWA!");
     Serial.println("Main: Audio info: " + String(info));
 }
 
 void audio_id3data(const char *info) {
-    // Serial.println("CO TO GURWA JEST?!");
     Serial.println("Main: ID3 info: " + String(info));
 }
 
 void audio_showstreamtitle(const char *info) {
-    // Serial.println("CZYMAJCIE MNIE GURWA!");
     Serial.println("Main: Stream info: " + String(info));
 }
