@@ -1,5 +1,7 @@
 #include "VolumeControl.h"
 
+extern float volumeAttenuation;
+
 VolumeControl* VolumeControl::instance = nullptr;
 
 VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
@@ -38,11 +40,14 @@ void VolumeControl::updateVolume(int volume) {
     preferences->putInt("volume", volume);
 
     if (!statusControl->isMuted()) {
-        audio->setVolume(volume);
+        // Map encoder value (0-11) to an attenuation range of 0% to 50%.
+        // 50% (0.5) corresponds to the library's level 11.
+        // This gives us a much quieter and more granular volume curve.
+        volumeAttenuation = map(volume, 0, 11, 0, 50) / 100.0f;
     }
 
     muteVolume = volume;
-    Serial.printf("VolumeControl: Volume set to: %d\n", volume);
+    Serial.printf("VolumeControl: Volume set to %d (Attenuation: %.1f%%)\n", volume, volumeAttenuation * 100);
 }
 
 void VolumeControl::handleMute() {
@@ -50,10 +55,15 @@ void VolumeControl::handleMute() {
 
     if (encoder->isEncoderButtonDown() && !buttonPressed) {
         bool newMuteState = !statusControl->isMuted();
-        statusControl->setMuted(newMuteState); // Update central status
+        statusControl->setMuted(newMuteState);
         buttonPressed = true;
 
-        audio->setVolume(newMuteState ? 0 : muteVolume);
+        if (newMuteState) {
+            volumeAttenuation = 0.0;
+        } else {
+            volumeAttenuation = map(muteVolume, 0, 11, 0, 50) / 100.0f;
+        }
+
         encoder->setEncoderValue(newMuteState ? 0 : muteVolume);
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;
