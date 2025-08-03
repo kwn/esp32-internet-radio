@@ -7,7 +7,8 @@ const char* StationControl::stations[] = {
   "http://uk7.internet-radio.com:8226/live",
   "https://195.150.20.7/rmf_fm",
   "https://s3.slotex.pl:7046/stream/",
-  "https://ssl-1.radiohost.pl:9680/stream"
+  "https://ssl-1.radiohost.pl:9680/stream",
+  "https://github.com/kwn/esp32-internet-radio/raw/refs/heads/main/1000hz.mp3"
 };
 
 StationControl* StationControl::instance = nullptr;
