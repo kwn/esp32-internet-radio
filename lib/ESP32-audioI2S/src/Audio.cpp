@@ -2412,7 +2412,7 @@ bool Audio::playChunk() {
 void Audio::loop() {
 
     if(!m_f_running) return;
-	
+
     if(InBuff.isComplete() && InBuff.isEmpty()) {
         playI2Sremains();
         stopSong();
@@ -3097,7 +3097,7 @@ play:
         cnt++;
         if(cnt == 3){playAudioData(); cnt = 0;}
     }
-    
+
 }
 //---------------------------------------------------------------------------------------------------------------------
 void Audio::processWebFile() {
@@ -4598,8 +4598,8 @@ int32_t Audio::Gain(int16_t s[2]) {
         r = (uint8_t)(step);
     }
 
-    v[LEFTCHANNEL] = (s[LEFTCHANNEL]  * (m_vol - l)) >> 6;
-    v[RIGHTCHANNEL]= (s[RIGHTCHANNEL] * (m_vol - r)) >> 6;
+    v[LEFTCHANNEL] = (s[LEFTCHANNEL]  * (m_vol - l)) >> 8;
+    v[RIGHTCHANNEL]= (s[RIGHTCHANNEL] * (m_vol - r)) >> 8;
 
     return (v[LEFTCHANNEL] << 16) | (v[RIGHTCHANNEL] & 0xffff);
 }
