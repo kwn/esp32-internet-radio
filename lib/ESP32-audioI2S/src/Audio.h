@@ -158,7 +158,7 @@ protected:
     bool     m_f_start          = true;
     bool     m_f_init           = false;
     bool     m_f_psram          = false;    // PSRAM is available (and used...)
-    bool     m_complete         = false;    // true if the buffer contains the last data from a source.    
+    bool     m_complete         = false;    // true if the buffer contains the last data from a source.
 };
 //----------------------------------------------------------------------------------------------------------------------
 

@@ -1,14 +1,25 @@
 #include "StationControl.h"
 
 const char* StationControl::stations[] = {
-  "https://fr4.1mix.co.uk:8000/32aac",
-  "https://zt02.cdn.eurozet.pl/ZETHIT.mp3",
-  "http://uk1.internet-radio.com:8294/live",
-  "http://uk7.internet-radio.com:8226/live",
-  "https://195.150.20.7/rmf_fm",
-  "https://s3.slotex.pl:7046/stream/",
-  "https://ssl-1.radiohost.pl:9680/stream",
-  "https://github.com/kwn/esp32-internet-radio/raw/refs/heads/main/1000hz.mp3"
+//   "https://fr4.1mix.co.uk:8000/32aac",
+//   "https://zt02.cdn.eurozet.pl/ZETHIT.mp3",
+//   "http://uk1.internet-radio.com:8294/live",
+//   "http://uk7.internet-radio.com:8226/live",
+//   "https://195.150.20.7/rmf_fm",
+//   "https://s3.slotex.pl:7046/stream/",
+//   "https://ssl-1.radiohost.pl:9680/stream",
+//   "https://github.com/kwn/esp32-internet-radio/raw/refs/heads/main/1000hz.mp3"
+    "http://mp3.polskieradio.pl:8900/", // Polskie Radio Program 1
+    "http://mp3.polskieradio.pl:8902/", // Polskie Radio Program 2
+    "http://mp3.polskieradio.pl:8904/", // Polskie Radio Program 3
+    "http://mp3.polskieradio.pl:8906/", // Polskie Radio Program 4
+    "http://195.150.20.242:8000/rmf_classic", // RMF Classic
+    "https://an.cdn.eurozet.pl/ant-web.mp3", // Antyradio
+    "http://stream4.nadaje.com:8578/poznan", // Radio Poznań
+    "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service", // BBC World
+    "https://fr4.1mix.co.uk:8000/32aac", // Trance all day
+    "https://zt02.cdn.eurozet.pl/ZETHIT.mp3", // Zet
+    "https://195.150.20.7/rmf_fm" // RMF FM
 };
 
 StationControl* StationControl::instance = nullptr;
