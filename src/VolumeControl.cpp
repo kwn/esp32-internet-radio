@@ -2,6 +2,10 @@
 
 VolumeControl* VolumeControl::instance = nullptr;
 
+const uint8_t volumeMap[12] = {
+    0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 15
+};
+
 VolumeControl::VolumeControl(Audio* aud, Preferences* prefs, StatusControl* statCtrl, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
     audio(aud), preferences(prefs), statusControl(statCtrl), ledControl(ledCtrl) {
     instance = this;
@@ -38,7 +42,7 @@ void VolumeControl::updateVolume(int volume) {
     preferences->putInt("volume", volume);
 
     if (!statusControl->isMuted()) {
-        audio->setVolume(volume);
+        audio->setVolume(volumeMap[volume]);
     }
 
     muteVolume = volume;
