@@ -48,9 +48,9 @@ void StationControl::handleStationChange() {
         int station = encoder->readEncoder();
         preferences->putInt("station", station);
 
-        audio->stopSong();
-
         Serial.println("StationControl: Set station to " + String(stations[station]));
+
+        audio->stopSong();
     }
 }
 
