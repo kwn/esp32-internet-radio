@@ -1,8 +1,7 @@
 #include "StationControl.h"
 
 const char* StationControl::stations[] = {
-//   "https://fr4.1mix.co.uk:8000/32aac",
-//   "https://zt02.cdn.eurozet.pl/ZETHIT.mp3",
+//   "https://fr4.1mix.co.uk:8000/32aac", // Trance all day
 //   "http://uk1.internet-radio.com:8294/live",
 //   "http://uk7.internet-radio.com:8226/live",
 //   "https://195.150.20.7/rmf_fm",
@@ -13,13 +12,13 @@ const char* StationControl::stations[] = {
     "http://mp3.polskieradio.pl:8902/", // Polskie Radio Program 2
     "http://mp3.polskieradio.pl:8904/", // Polskie Radio Program 3
     "http://mp3.polskieradio.pl:8906/", // Polskie Radio Program 4
-    "http://195.150.20.242:8000/rmf_classic", // RMF Classic
+    "https://zt02.cdn.eurozet.pl/ZETHIT.mp3", // Zet
+    "https://rs102-krk-cyfronet.rmfstream.pl/RMFFM48", // RMF FM
+    "https://rs203-krk.rmfstream.pl/rmf_classic", // RMF Classic
     "https://an.cdn.eurozet.pl/ant-web.mp3", // Antyradio
     "http://stream4.nadaje.com:8578/poznan", // Radio Poznań
     "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service", // BBC World
-    "https://fr4.1mix.co.uk:8000/32aac", // Trance all day
-    "https://zt02.cdn.eurozet.pl/ZETHIT.mp3", // Zet
-    "https://195.150.20.7/rmf_fm" // RMF FM
+    "https://radiostream.pl/tuba8926-1.mp3" // Złote przeboje
 };
 
 StationControl* StationControl::instance = nullptr;

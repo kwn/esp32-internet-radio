@@ -102,7 +102,7 @@ void LedControl::showWifiConnecting() {
 }
 
 void LedControl::showStreamBuffering() {
-    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+    fill_solid(leds, numLeds, CRGB(40, 16, 0));
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
     uint8_t brightness = beatsin8(60, 0, 255);
@@ -112,7 +112,7 @@ void LedControl::showStreamBuffering() {
 }
 
 void LedControl::showPlaying() {
-    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+    fill_solid(leds, numLeds, CRGB(40, 16, 0));
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
     if (ledIndex >= 0 && ledIndex < numLeds) {
