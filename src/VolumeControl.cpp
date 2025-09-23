@@ -57,7 +57,7 @@ void VolumeControl::handleMute() {
         statusControl->setMuted(newMuteState); // Update central status
         buttonPressed = true;
 
-        audio->setVolume(newMuteState ? 0 : muteVolume);
+        audio->setVolume(newMuteState ? 0 : muteVolume, 1);
         encoder->setEncoderValue(newMuteState ? 0 : muteVolume);
     } else if (!encoder->isEncoderButtonDown()) {
         buttonPressed = false;

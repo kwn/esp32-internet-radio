@@ -48,7 +48,7 @@ Debouncer streamReconnectDebouncer(5000);
 void ledTask(void *pvParameters) {
     for (;;) {
         ledControl->update();
-        vTaskDelay(17 / portTICK_PERIOD_MS);
+        vTaskDelay(32 / portTICK_PERIOD_MS);
     }
 }
 
