@@ -3,11 +3,11 @@
 ToneControl* ToneControl::instance = nullptr;
 
 const int8_t basssMap[11] = {
-    6, 4, 3, 2, 1, /**/0/**/, -2, -4, -6, -8, -10
+    8, 6, 4, 3, 2, /**/1/**/, -2, -4, -6, -8, -10
 };
 
 const int8_t trebleMap[11] = {
-    -10, -8, -6, -4, -2, /**/0/**/, 1, 2, 3, 4, 6
+    -8, -6, -4, -2, 0, /**/3/**/, 4, 5, 6, 7, 8
 };
 
 ToneControl::ToneControl(Audio* aud, Preferences* prefs, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):

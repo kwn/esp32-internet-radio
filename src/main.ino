@@ -107,6 +107,7 @@ void loop() {
         if (audio.isRunning()) {
             statusControl->setPrimaryState(STATE_PLAYING);
             audio.loop();
+            delay(6);
         } else {
             statusControl->setPrimaryState(STATE_STREAM_BUFFERING);
             if (streamReconnectDebouncer.hasElapsed()) {
@@ -127,10 +128,10 @@ void audio_info(const char *info) {
     Serial.println("Main: Audio info: " + String(info));
 }
 
-void audio_id3data(const char *info) {
-    Serial.println("Main: ID3 info: " + String(info));
-}
+// void audio_id3data(const char *info) {
+//     Serial.println("Main: ID3 info: " + String(info));
+// }
 
-void audio_showstreamtitle(const char *info) {
-    Serial.println("Main: Stream info: " + String(info));
-}
+// void audio_showstreamtitle(const char *info) {
+//     Serial.println("Main: Stream info: " + String(info));
+// }

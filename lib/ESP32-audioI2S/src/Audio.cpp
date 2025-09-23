@@ -5241,7 +5241,7 @@ void Audio::computeLimit() {    // is calculated when the volume or balance chan
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void Audio::Gain(int16_t* sample) {
     /* important: these multiplications must all be signed ints, or the result will be invalid */
-    double attenuation = 0.2; // 20% volume attenuation
+    double attenuation = 0.25; // 25% volume attenuation
     sample[LEFTCHANNEL]  *= m_limit_left * attenuation;
     sample[RIGHTCHANNEL] *= m_limit_right * attenuation;
 }
