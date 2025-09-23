@@ -6,9 +6,9 @@
 #include <Preferences.h>
 #include "LedControl.h"
 
-#define TONE_CONTROL_MIN_BOUNDRY -5
-#define TONE_CONTROL_MAX_BOUNDRY 5
-#define TONE_CONTROL_INITIAL_TONE 0
+#define TONE_CONTROL_MIN_BOUNDRY 0
+#define TONE_CONTROL_MAX_BOUNDRY 10
+#define TONE_CONTROL_INITIAL_TONE 5
 #define ROTARY_ENCODER_STEPS 4
 
 class ToneControl {

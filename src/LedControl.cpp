@@ -1,4 +1,5 @@
 #include "LedControl.h"
+#include "ToneControl.h"
 
 LedControl::LedControl(CRGB* leds, int numLeds, StatusControl* statusControl, StationControl* stationControl)
     : leds(leds), numLeds(numLeds), statusControl(statusControl), stationControl(stationControl), animationStep(0), direction(1), animationDebouncer(60), overlayTimeout(0), activeOverlay(OVERLAY_NONE), overlayValue(0) {}
@@ -66,7 +67,7 @@ void LedControl::displayOverlay() {
             const CRGB bassColor = CRGB::Red;
             const CRGB trebleColor = CRGB::Yellow;
 
-            int centerIndex = map(toneValue, -5, 5, numLeds - 1, 0);
+            int centerIndex = map(toneValue, TONE_CONTROL_MIN_BOUNDRY, TONE_CONTROL_MAX_BOUNDRY, numLeds - 1, 0);
 
             fl::fill_gradient_RGB(leds, numLeds, trebleColor, bassColor);
 
@@ -102,7 +103,7 @@ void LedControl::showWifiConnecting() {
 }
 
 void LedControl::showStreamBuffering() {
-    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+    fill_solid(leds, numLeds, CRGB(40, 16, 0));
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
     uint8_t brightness = beatsin8(60, 0, 255);
@@ -112,7 +113,7 @@ void LedControl::showStreamBuffering() {
 }
 
 void LedControl::showPlaying() {
-    fill_solid(leds, numLeds, CRGB(20, 8, 0));
+    fill_solid(leds, numLeds, CRGB(40, 16, 0));
     int station = stationControl->getStationNumber();
     int ledIndex = numLeds - 1 - station;
     if (ledIndex >= 0 && ledIndex < numLeds) {
