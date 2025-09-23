@@ -74,8 +74,10 @@ void setup() {
     pinMode(PIN_ENCODER3_SW, INPUT);
 
     audio.setPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
-    audio.setBufsize(24 * 1024, -1);
     audio.forceMono(true);
+    audio.setBufsize(42 * 1024, -1);
+
+    Serial.printf("Audio buffer: %d bytes (%d free, %d allocated)\n", audio.inBufferSize(), audio.inBufferFree(), audio.inBufferFilled());
 
     FastLED.addLeds<LED_TYPE, PIN_LED_DATA, LED_COLOR_ORDER>(leds, LED_NUMBER);
     FastLED.setBrightness(LED_BRIGHTNESS);

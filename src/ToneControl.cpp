@@ -2,6 +2,14 @@
 
 ToneControl* ToneControl::instance = nullptr;
 
+const int8_t basssMap[11] = {
+    6, 4, 3, 2, 1, /**/0/**/, -2, -4, -6, -8, -10
+};
+
+const int8_t trebleMap[11] = {
+    -10, -8, -6, -4, -2, /**/0/**/, 1, 2, 3, 4, 6
+};
+
 ToneControl::ToneControl(Audio* aud, Preferences* prefs, LedControl* ledCtrl, int pinCLK, int pinDT, int pinSW):
     audio(aud), preferences(prefs), ledControl(ledCtrl) {
     instance = this;
@@ -37,25 +45,9 @@ void ToneControl::handleChange() {
 void ToneControl::updateTone(int tone) {
     preferences->putInt("tone", tone);
 
-    int lowOffset = 2;
-    int highOffset = 3;
-    int lowAdj = 0;
-    int highAdj = 0;
+    audio->setTone(basssMap[tone], 0, trebleMap[tone]);
 
-    if (tone < 0) {
-        lowAdj = abs(tone);
-        highAdj = -abs(tone);
-    } else if (tone > 0) {
-        lowAdj = -abs(tone);
-        highAdj = tone;
-    }
-
-    int finalLow = lowAdj + lowOffset;
-    int finalHigh = highAdj + highOffset;
-
-    audio->setTone(finalLow, 0, finalHigh);
-
-    Serial.printf("ToneControl: Bass: %d, Treble: %d\n", finalLow, finalHigh);
+    Serial.printf("ToneControl: Bass: %d, Treble: %d\n", basssMap[tone], trebleMap[tone]);
 }
 
 void ToneControl::handleReset() {
@@ -63,10 +55,10 @@ void ToneControl::handleReset() {
 
     if (encoder->isEncoderButtonDown() && !buttonPressed) {
         buttonPressed = true;
-        encoder->setEncoderValue(0);
-        ledControl->triggerToneOverlay(0);
+        encoder->setEncoderValue(TONE_CONTROL_INITIAL_TONE);
+        ledControl->triggerToneOverlay(TONE_CONTROL_INITIAL_TONE);
 
-        updateTone(0);
+        updateTone(TONE_CONTROL_INITIAL_TONE);
 
         Serial.println("ToneControl: Tone reset to neutral");
     } else if (!encoder->isEncoderButtonDown()) {
